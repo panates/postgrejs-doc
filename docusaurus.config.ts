@@ -6,6 +6,7 @@ const config: Config = {
   title: 'My Site',
   tagline: 'Dinosaurs are cool',
   favicon: 'img/favicon.ico',
+  plugins: [require.resolve('docusaurus-lunr-search')],
 
   // Set the production url of your site here
   url: 'https://your-docusaurus-site.example.com',
