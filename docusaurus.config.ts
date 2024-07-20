@@ -7,9 +7,9 @@ const config: Config = {
   tagline: 'PostgreJS is cool',
 
   organizationName: 'panates',
-  projectName: 'panates.github.io',
-  url: 'https://panates.github.io', // Your website URL
-  baseUrl: '/postgrejs',
+  projectName: 'postgrejs-doc',
+  url: 'https://postgrejs.panates.com', // Your website URL
+  baseUrl: '/',
   trailingSlash: false,
 
   favicon: 'img/favicon.ico',
