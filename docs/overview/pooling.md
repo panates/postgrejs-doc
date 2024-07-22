@@ -3,15 +3,15 @@ sidebar_position: 2
 ---
 # Pooling
 
-## 1.2. Pooling
+## Creating a connection pool
 
 `Pool` class is used to create a connection pool. Constructor accepts connection string
-or [PoolConfiguration](#222-poolconfiguration) interface
+or [PoolConfiguration](../api/interfaces/pool-configuration) interface
 
-`*new Pool([config: String | [PoolConfiguration](#222-poolconfiguration)]);*`
+*new Pool([config: String | [PoolConfiguration](../api/interfaces/pool-configuration)]);*
 
 ```ts
-import { Pool } from 'postgresql-client';
+import { Pool } from 'postgrejs';
 
 const dbpool = new Pool({
     host: 'postgres://localhost',
@@ -26,7 +26,7 @@ const qr = await dbpool.query('select * from my_table where id=1');
 await dbpool.close(); // Disconnect all connections and shutdown pool
 ```
 
-### 1.2.1. Obtaining a connection
+## Obtaining a connection
 
 The pool returns an idle `Connection` instance when you call `pool.acquire()` function.
 You must call `connection.release()` method when you done with the connection.
@@ -49,7 +49,7 @@ if you don't execute your query in a transaction.
 So you don't need to take care of releasing the connection
 every time.
 
-### 1.2.2. Shutting down the pool
+## Shutting down the pool
 
 To shut down a pool call `pool.close()` method.
 This will wait for active connections to get idle than will release all resources.

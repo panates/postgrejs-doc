@@ -1,19 +1,50 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'PostgreJS',
-  tagline: 'PostgreJS is cool',
+  tagline: 'Professional PostgreSQL client for NodeJS',
 
   organizationName: 'panates',
   projectName: 'postgrejs-doc',
-  url: 'https://postgrejs.panates.com', // Your website URL
+  url: 'https://postgrejs.panates.com',
   baseUrl: '/',
   trailingSlash: false,
 
   favicon: 'img/favicon.ico',
-  plugins: [require.resolve('docusaurus-lunr-search')],
+  plugins: [
+    [
+      "docusaurus-lunr-search",
+      {
+
+      }],
+    [
+      "docusaurus-plugin-remote-content",
+      {
+        // options here
+        name: "changelog", // used by CLI, must be path safe
+        sourceBaseUrl: "https://raw.githubusercontent.com/panates/postgrejs/master/", // the base url for the markdown (gets prepended to all of the documents when fetching)
+        outDir: "./src/pages", // the base directory to output to.
+        documents: ["CHANGELOG.md"], // the file names to download,
+        modifyContent: (filename, content) => {
+          // if (filename.includes("CHANGELOG")) {
+          return {
+            content: `---
+title: Change Log
+description: Change log
+hide_table_of_contents: true
+---
+
+${content}`, // <-- this last part adds in the rest of the content, which would otherwise be discarded
+          }
+          // }
+
+          // return content
+        },
+      },
+    ],
+  ],
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -35,14 +66,14 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+              'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+              'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -52,26 +83,29 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
     navbar: {
       title: 'PostgreJS',
       logo: {
         alt: 'PostgreJS Logo',
-        src: 'img/logo.svg',
+        src: 'img/posgresql-icon.svg',
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          label: 'Documentation',
           position: 'left',
-          label: 'Tutorial',
+          type: 'docSidebar',
+          sidebarId: 'docsSidebar',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
-          label: 'GitHub',
+          to: '/CHANGELOG',
+          label: 'Change Log',
+          position: 'left'
+        },
+        {
+          'aria-label': 'GitHub repository',
           position: 'right',
+          href: 'https://github.com/panates/postgrejs',
+          className: "header--github-link"
         },
       ],
     },
@@ -82,8 +116,12 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Tutorial',
+              label: 'Introduction',
               to: '/docs/intro',
+            },
+            {
+              label: 'License',
+              to: '/docs/license',
             },
           ],
         },
@@ -92,11 +130,7 @@ const config: Config = {
           items: [
             {
               label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/postgresql-client',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/panates',
+              href: 'https://stackoverflow.com/questions/tagged/postgrejs',
             },
             {
               label: 'Twitter',
@@ -112,12 +146,8 @@ const config: Config = {
           title: 'More',
           items: [
             {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
               label: 'GitHub',
-              href: 'https://github.com/panates/postgresql-client',
+              href: 'https://github.com/panates/postgrejs',
             },
           ],
         },

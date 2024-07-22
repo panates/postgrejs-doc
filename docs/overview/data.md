@@ -1,11 +1,9 @@
 ---
-sidebar_position: 6
+sidebar_position: 8
 ---
 # Data Types
 
-## 1.6. Data types
-
-### 1.6.1 Type mappings
+## Data Types Mappings
 
 The table below lists builtin data type mappings.
 
@@ -60,12 +58,12 @@ The table below lists builtin data type mappings.
 | _box          | Rectangle[] | text,binary | binary | 
 | _int2Vector   | number[][]  | text,binary | binary | 
 
-### 1.6.2 Data transfer formats
+## Data transfer formats
 
 PostgreSQL wire protocol offers `text` and `binary` data transfer formats.
 Most common libraries supports only `text` transfer format which is easy to implement but poses performance and memory
 problems.
-`postgresql-client` has rich data type mappings which supports both `text` and `binary` formats.
+`postgrejs` has rich data type mappings which supports both `text` and `binary` formats.
 The default format is set to `binary`. However, you can set the format to `text` for all columns or per column.
 
 Note that binary format is faster than text format.

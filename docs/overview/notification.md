@@ -1,14 +1,12 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 # Notification Listeners
 
-## 1.5. Notification Listeners
-
-postgresql-client library has a high level implementation for PostgreSql's LISTEN/NOTIFY feature.
+postgrejs library has a high level implementation for PostgreSql's LISTEN/NOTIFY feature.
 You can listen for channels using both single Connection instance or a Pool instance.
 
-### 1.5.1 Listening notifications with Connection instance
+## Using Single Connection Instance
 
 To listen PostgreSql's channels, you can use high level listener implementation
 (recommended) or can use low level event emitter style.
@@ -33,7 +31,7 @@ await connection.unListenAll();
 ```
 
 
-### 1.5.2 Listening notifications with Pool
+## Using Connection Pool
 
 You can also listen for notifications using connection Pool. When you call "listen" method,
 the Pool creates a separate connection to listen for channels and emits the callback function when a notification received.

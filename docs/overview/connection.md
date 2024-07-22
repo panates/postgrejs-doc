@@ -2,18 +2,18 @@
 sidebar_position: 1
 ---
 
-# Connecting
+# Connection
 
-## 1.1. Connecting
+## Creating a connection
 
 The library supports both single and pooled connections.
 If you want to establish a single session to a PostgreSQL server
 you need to use `Connection` class. If you require a connection pool use `Pool` class instead.
 
-*new Connection([config: String | [ConnectionConfiguration](#221-connectionconfiguration)]);*
+*new Connection([config: String | [ConnectionConfiguration](../api/interfaces/connection-configuration)]);*
 
 ```ts
-import { Connection } from 'postgresql-client';
+import { Connection } from 'postgrejs';
 
 const connection = new Connection({
     host: 'localhost',
@@ -28,12 +28,12 @@ await connection.connect();
 await connection.close();
 ```
 
-### 1.1.1. Connection Strings
+## Connection Strings
 
 You can initialize both a `Connection` and `Pool` using a connection string uri.
 Unix domain sockets and TCP uri's can be used as connection string.
 
-#### UNIX domain socket
+### UNIX domain socket
 
 `[unix:// | socket://][<user>][:<password>]@<path>[?query&query...]`
 
@@ -53,7 +53,7 @@ Unix domain sockets and TCP uri's can be used as connection string.
 const connection = new Connection('postgres://someuser:somepassword@somehost:381/somedatabase');
 ```
 
-#### TCP connection URI
+### TCP connection URI
 
 `[pg:// | postgres://][<user>][:<password>]@<host>[:<port>][/<database>][?query&query...]`
 
@@ -61,7 +61,7 @@ const connection = new Connection('postgres://someuser:somepassword@somehost:381
 
 `pg://localhost?db=mydb&user=me`
 
-### 1.1.2. Environment variables
+## Environment variables
 
 Configuration object and connection strings are optional for both `Connection` and `Pool` classes.
 If no argument given while creating an instance,

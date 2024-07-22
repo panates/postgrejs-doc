@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 7
 ---
 # Transaction Management
 
@@ -11,7 +11,7 @@ To start a transaction in PostgreSQL you need to execute 'BEGIN' command.
 `savepoint()`, `rollbackToSavepoint()` shorthand methods which is typed and more test friendly.
 
 By default, PostgreSQL server executes SQL commands in auto-commit mode.
-`postgresql-client` has a high-level implementation to manage this.
+`postgrejs` has a high-level implementation to manage this.
 You can change this behaviour by setting `autoCommit` property to `false`.
 After that all SQL scripts will be executed in transaction and
 changes will not be applied until you call `commit()` or execute `COMMIT` command.
