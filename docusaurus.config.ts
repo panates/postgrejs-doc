@@ -149,6 +149,10 @@ ${content}`, // <-- this last part adds in the rest of the content, which would 
               label: 'GitHub',
               href: 'https://github.com/panates/postgrejs',
             },
+            {
+              label: 'NPM',
+              href: 'https://www.npmjs.com/package/postgrejs',
+            },
           ],
         },
       ],
