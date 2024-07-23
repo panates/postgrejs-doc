@@ -5,14 +5,13 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'PostgreJS',
   tagline: 'Professional PostgreSQL client for NodeJS',
-
   organizationName: 'panates',
   projectName: 'postgrejs-doc',
   url: 'https://postgrejs.panates.com',
   baseUrl: '/',
   trailingSlash: false,
-
   favicon: 'img/favicon.ico',
+
   plugins: [
     [
       "docusaurus-lunr-search",
@@ -63,17 +62,6 @@ ${content}`, // <-- this last part adds in the rest of the content, which would 
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-              'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-        },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-              'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -87,7 +75,7 @@ ${content}`, // <-- this last part adds in the rest of the content, which would 
       title: 'PostgreJS',
       logo: {
         alt: 'PostgreJS Logo',
-        src: 'img/posgresql-icon.svg',
+        src: 'img/logo.svg',
       },
       items: [
         {

@@ -1,19 +1,18 @@
-import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
+import * as React from 'react';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
-import Heading from '@theme/Heading';
 
 import styles from './index.module.css';
 
-function HomepageHeader() {
+function HomepageHeader(): React.JSX.Element {
   const {siteConfig} = useDocusaurusContext();
   return (
       <header className={styles.heroImage}>
         <div className={styles.heroText}>
-          <span style={{display: 'flex'}}>
-            <img src="/img/posgresql-icon.svg" style={{width: 128, marginRight: '20px'}}></img>
+          <span style={{display: 'flex', justifyContent: 'center'}}>
+            <img src="/img/logo.svg" style={{width: 128, marginRight: '20px'}} alt="Logo"></img>
             <p className="hero__title">{siteConfig.title}</p>
           </span>
           <p className="hero__subtitle">
@@ -51,37 +50,15 @@ function HomepageHeader() {
   );
 }
 
-function HomepageHeader2() {
-  const {siteConfig} = useDocusaurusContext();
+export default function Home(): React.JSX.Element {
   return (
-      <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-export default function Home(): JSX.Element {
-  const {siteConfig} = useDocusaurusContext();
-  return (
-    <Layout
-      // title={`${siteConfig.title}`}
-      description="Enterprise level PostgreSQL client for NodeJS<head />">
-      <HomepageHeader />
-      <main>
-        <HomepageFeatures />
-      </main>
-    </Layout>
+      <Layout
+          // title={`${siteConfig.title}`}
+          description="Enterprise level PostgreSQL client for NodeJS">
+        <HomepageHeader/>
+        <main>
+          <HomepageFeatures/>
+        </main>
+      </Layout>
   );
 }
