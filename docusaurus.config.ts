@@ -121,12 +121,12 @@ ${content}`, // <-- this last part adds in the rest of the content, which would 
               href: 'https://stackoverflow.com/questions/tagged/postgrejs',
             },
             {
-              label: 'Twitter',
-              href: 'https://twitter.com/panates',
+              label: 'X (Twitter)',
+              href: 'https://x.com/panates',
             },
             {
               label: 'LinkedIn',
-              href: 'https://linkedin.com/panates',
+              href: 'https://www.linkedin.com/company/panates',
             },
           ],
         },
