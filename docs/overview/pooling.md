@@ -14,12 +14,16 @@ or [PoolConfiguration](../api/interfaces/pool-configuration) interface
 import { Pool } from 'postgrejs';
 
 const dbpool = new Pool({
-    host: 'postgres://localhost',
-    pool: {
-        min: 1,
-        max: 10,
-        idleTimeoutMillis: 5000
-    }
+  host: 'postgres://localhost',
+  min: 1,
+  minIdle: 1,
+  max: 10,
+  maxQueue: 1000,
+  idleTimeoutMillis: 30000,
+  acquireMaxRetries: 0,
+  acquireRetryWait: 2000,
+  acquireTimeoutMillis: 0,
+  validation: true
 });
 const qr = await dbpool.query('select * from my_table where id=1');
 // Do whatever you need with pool
