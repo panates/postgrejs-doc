@@ -15,11 +15,11 @@ rows.
 To execute SQL scripts you can create a `ScriptExecutor` instance or just call `connection.execute()`
 or `pool.execute()` methods.
 
-*pool.execute(sql: string, options?: [ScriptExecuteOptions](#224-scriptexecuteoptions)]):
-Promise\<[ScriptResult](#225-scriptresult)>;*
+*pool.execute(sql: string, options?: [ScriptExecuteOptions](../api/interfaces/script-execute-options)]):
+Promise\<[ScriptResult](../api/interfaces/script-result)>;*
 
-*connection.execute(sql: string, options?: [ScriptExecuteOptions](#224-scriptexecuteoptions)]):
-Promise\<[ScriptResult](#225-scriptresult)>;*
+*connection.execute(sql: string, options?: [ScriptExecuteOptions](../api/interfaces/script-execute-options)]):
+Promise\<[ScriptResult](../api/interfaces/script-result)>;*
 
 ```ts
 const qr = await connection.execute('BEGIN; update my_table set ref = ref+1; END;');

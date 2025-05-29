@@ -7,8 +7,8 @@ sidebar_position: 5
 Cursors enable applications to process very large data sets.
 Cursors should also be used where the number of query rows cannot be predicted
 and may be larger than your JavaScript engine can handle in a single array.
-A [Cursor](#213-cursor) object is obtained by setting `cursor: true` in the
-[options](#229-queryoptions) parameter of the [Connection](#211-connection).execute()
+A [Cursor](../api/classes/cursor) object is obtained by setting `cursor: true` in the
+[options](../api/interfaces/query-options) parameter of the [Connection](../api/classes/connection).execute()
 method when executing a query. Cursor fetches rows in batches. Cursor.next() method
 returns the next row from the internal cache. When internal cache is empty,
 it fetches next batch of rows from the server.

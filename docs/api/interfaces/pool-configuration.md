@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # PoolConfiguration
 
-Extends [ConnectionConfiguration](connection-configuration)
+Extends [ConnectionConfiguration](connection-configuration.md)
 
 | Key                  | Type      | Default | Description                                                                         |
 |----------------------|-----------|---------|-------------------------------------------------------------------------------------|

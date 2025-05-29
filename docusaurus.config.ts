@@ -1,6 +1,7 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import remarkGfm from 'remark-gfm';
 
 const config: Config = {
   title: 'PostgreJS',
@@ -15,9 +16,7 @@ const config: Config = {
   plugins: [
     [
       "docusaurus-lunr-search",
-      {
-
-      }],
+      {}],
     [
       "docusaurus-plugin-remote-content",
       {
@@ -62,6 +61,7 @@ ${content}`, // <-- this last part adds in the rest of the content, which would 
       {
         docs: {
           sidebarPath: './sidebars.ts',
+          remarkPlugins: [remarkGfm],
         },
         theme: {
           customCss: './src/css/custom.css',

@@ -10,7 +10,7 @@ The library supports both single and pooled connections.
 If you want to establish a single session to a PostgreSQL server
 you need to use `Connection` class. If you require a connection pool use `Pool` class instead.
 
-*new Connection([config: String | [ConnectionConfiguration](../api/interfaces/connection-configuration)]);*
+*new Connection([config: String | [ConnectionConfiguration](../api/interfaces/connection-configuration.md)]);*
 
 ```ts
 import { Connection } from 'postgrejs';

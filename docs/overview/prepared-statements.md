@@ -7,14 +7,14 @@ sidebar_position: 5
 Prepared statements are great when you need executing a script more than once (etc. bulk insert or update).
 It dramatically reduces execution time.
 
-To create a [PreparedStatement](#214-preparedstatement) instance or just call `connection.prepare()` or `pool.prepare()`
+To create a [PreparedStatement](../api/classes/prepared-statement) instance or just call `connection.prepare()` or `pool.prepare()`
 methods.
 
-*pool.prepare(sql: string, options?: [StatementPrepareOptions](#228-statementprepareoptions)]):
-Promise\<[PreparedStatement](#214-preparedstatement)>;*
+*pool.prepare(sql: string, options?: [StatementPrepareOptions](../api/interfaces/statement-prepare-options)]):
+Promise\<[PreparedStatement](../api/classes/prepared-statement)>;*
 
-*connection.prepare(sql: string, options?: [StatementPrepareOptions](#228-statementprepareoptions)]):
-Promise\<[PreparedStatement](#214-preparedstatement)>;*
+*connection.prepare(sql: string, options?: [StatementPrepareOptions](../api/interfaces/statement-prepare-options)]):
+Promise\<[PreparedStatement](../api/classes/prepared-statement)>;*
 
 ```ts
 import { DataTypeOIDs } from 'postgrejs';

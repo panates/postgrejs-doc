@@ -8,9 +8,9 @@ In the extended-query protocol, *prepared statements* and *portals* are used.
 Unlike simple query, extended query protocol supports parameter binding and binary data format.
 The only limit is you can execute one command at a time.
 
-*pool.query(sql: string, options?: [QueryOptions](#229-queryoptions)]): Promise\<[QueryResult](#2210-queryresult)>;*
+*pool.query(sql: string, options?: [QueryOptions](../api/interfaces/query-options)]): Promise\<[QueryResult](../api/interfaces/query-result)>;*
 
-*connection.query(sql: string, options?: [QueryOptions](#229-queryoptions)]): Promise\<[QueryResult](#2210-queryresult)>
+*connection.query(sql: string, options?: [QueryOptions](../api/interfaces/query-options)]): Promise\<[QueryResult](../api/interfaces/query-result)>
 ;*
 
 ```ts
