@@ -17,31 +17,6 @@ const config: Config = {
     [
       "docusaurus-lunr-search",
       {}],
-    [
-      "docusaurus-plugin-remote-content",
-      {
-        // options here
-        name: "changelog", // used by CLI, must be path safe
-        sourceBaseUrl: "https://raw.githubusercontent.com/panates/postgrejs/master/", // the base url for the markdown (gets prepended to all of the documents when fetching)
-        outDir: "./src/pages", // the base directory to output to.
-        documents: ["CHANGELOG.md"], // the file names to download,
-        modifyContent: (filename, content) => {
-          // if (filename.includes("CHANGELOG")) {
-          return {
-            content: `---
-title: Change Log
-description: Change log
-hide_table_of_contents: true
----
-
-${content}`, // <-- this last part adds in the rest of the content, which would otherwise be discarded
-          }
-          // }
-
-          // return content
-        },
-      },
-    ],
   ],
 
   onBrokenLinks: 'throw',
@@ -83,11 +58,6 @@ ${content}`, // <-- this last part adds in the rest of the content, which would 
           position: 'left',
           type: 'docSidebar',
           sidebarId: 'docsSidebar',
-        },
-        {
-          to: '/CHANGELOG',
-          label: 'Change Log',
-          position: 'left'
         },
         {
           'aria-label': 'GitHub repository',
