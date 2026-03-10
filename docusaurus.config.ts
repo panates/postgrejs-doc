@@ -60,6 +60,11 @@ const config: Config = {
           sidebarId: 'docsSidebar',
         },
         {
+          label: 'Code Wiki',
+          position: 'left',
+          href: 'https://codewiki.google/github.com/panates/postgrejs',
+        },
+        {
           'aria-label': 'GitHub repository',
           position: 'right',
           href: 'https://github.com/panates/postgrejs',
