@@ -96,6 +96,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -108,6 +109,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -120,6 +122,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -132,6 +135,7 @@ xychart-beta
 ```
 
 </div>
+
 ## Simple Query
 
 PostgreSQL's Simple Query sub-protocol: the client sends the SQL text as a single `Query` (`Q`) message and the server parses, plans, executes, and streams the results back in that same round trip - no separate parse/bind/describe/execute/sync steps, and no query parameters. In postgrejs this is `Connection.execute(sql)`. It's the cheapest way to run a query the client isn't going to reuse, which is why it's also the baseline every other protocol group below is compared against. It's distinct from the Extended Query group below: Extended Query trades this single round trip for several (parse, bind, describe, execute, sync) in exchange for bind parameters and a statement the server can plan once and re-execute. The scenarios here measure that Simple Query round trip three ways: a single query on an otherwise-idle connection, many queries fired concurrently over one connection, and one query that fetches many rows.
@@ -168,6 +172,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -180,6 +185,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -192,6 +198,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -204,6 +211,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Concurrent Execution
 
 The concurrent counterpart to Sequential Execution above. Fire
@@ -238,6 +246,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -250,6 +259,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -262,6 +272,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -274,6 +285,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Simple Query Fetch
 
 Fetch 1000 mixed-type rows via each
@@ -304,6 +316,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -316,6 +329,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -328,6 +342,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -340,6 +355,7 @@ xychart-beta
 ```
 
 </div>
+
 ## Extended Query
 
 PostgreSQL's Extended Query sub-protocol: the client splits a query into separate `Parse`, `Bind`, `Describe`, `Execute`, and `Sync` messages instead of Simple Query's single `Query` message - more wire round trips per query, but it is what makes bind parameters, typed result columns, and a statement the server plans once and can re-execute possible at all (none of that exists in Simple Query). In postgrejs, `Connection.query(sql)` always goes through this path, and `Connection.prepare(sql)` additionally gives back a reusable `PreparedStatement` handle instead of re-sending `Parse` on every call. The scenarios here mirror the Simple Query group's own Sequential/Concurrent pair - a single parameterized call one at a time, then many fired concurrently over one connection - plus decoding many mixed-type rows through `query()` (the row count itself a bind parameter, large enough that decode work dominates the measurement) on both the text and binary wire formats, and the cost this protocol is meant to amortize away: reusing one prepared statement across many executions, sequentially and then concurrently.
@@ -378,6 +394,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -390,6 +407,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -402,6 +420,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -414,6 +433,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Concurrent Execution
 
 The concurrent counterpart to Sequential Execution above, same
@@ -449,6 +469,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -461,6 +482,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -473,6 +495,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -485,6 +508,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Mixed-Type Decode (Text Protocol)
 
 Fetch 1000 mixed-type rows (int2/int4/
@@ -528,6 +552,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -540,6 +565,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -552,6 +578,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -564,6 +591,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Mixed-Type Decode (Binary Protocol)
 
 The same fetch as Mixed-Type Decode (Text Protocol) above - same
@@ -604,6 +632,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -616,6 +645,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -628,6 +658,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -640,6 +671,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Large Blob Fetch
 
 Fetch 10 rows of a
@@ -687,6 +719,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -699,6 +732,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -711,6 +745,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -723,6 +758,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -735,6 +771,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Large Array Fetch
 
 Fetch 10 rows of an int4[] with
@@ -789,6 +826,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -801,6 +839,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -813,6 +852,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -825,6 +865,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -837,6 +878,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Prepared Statement Reuse (Sequential)
 
 Prepare once and execute 50 times,
@@ -869,6 +911,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -881,6 +924,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -893,6 +937,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -905,6 +950,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Prepared Statement Reuse (Concurrent)
 
 The concurrent counterpart to Sequential above: prepare once,
@@ -938,6 +984,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -950,6 +997,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -962,6 +1010,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -974,6 +1023,7 @@ xychart-beta
 ```
 
 </div>
+
 ## Cursor Streaming
 
 A server-side cursor (postgrejs's `Connection.query(sql, { cursor: true })`) fetches rows in bounded batches via repeated Extended Query `Execute` calls against a portal, instead of the server materializing and sending the whole result set at once. The relevant metric when a result set doesn't comfortably fit in memory, not raw single-shot throughput.
@@ -1002,6 +1052,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1014,6 +1065,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1026,6 +1078,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1038,6 +1091,7 @@ xychart-beta
 ```
 
 </div>
+
 ## Connection Pooling
 
 The overhead each library's connection pool adds on top of the raw per-query costs measured above: running many queries concurrently through a shared pool (postgrejs's `Pool.query()`), and isolating the pure cost of acquiring and releasing a pooled connection from the cost of the query itself.
@@ -1068,6 +1122,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1080,6 +1135,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1092,6 +1148,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1104,6 +1161,7 @@ xychart-beta
 ```
 
 </div>
+
 ### Pooled Extended Query
 
 The Extended Query counterpart to Pooled Simple Query above: the
@@ -1143,6 +1201,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1155,6 +1214,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1167,6 +1227,7 @@ xychart-beta
 ```
 
 </div>
+
 <div style={{display: 'inline-block', width: '430px', verticalAlign: 'top', margin: '4px'}}>
 
 ```mermaid
@@ -1179,6 +1240,7 @@ xychart-beta
 ```
 
 </div>
+
 ## Raw data
 
 Backing raw data for the numbers above lives in `benchmark/results/*.json` (gitignored; regenerate with `npm run bench`).
