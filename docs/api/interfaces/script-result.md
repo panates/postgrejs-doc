@@ -1,11 +1,11 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 
 # ScriptResult
 
-| Key          | Type        | Description        |
-|--------------|-------------| -------------------|
-| results      | `CommandResult[]` | Array of command result for each sql command in the script |
-| totalCommands| `number`    |  Command count in the script |
-| totalTime    | `number`   |  Total execution time  |
+| Key           | Type                                        | Default | Description                                    |
+|---------------|----------------------------------------------|---------|--------------------------------------------------|
+| results       | [`CommandResult[]`](./command-result.md)      |         | Array of command result for each SQL command in the script |
+| totalCommands | `number`                                     |         | Command count in the script                     |
+| totalTime     | `number`                                     |         | Total execution time                            |

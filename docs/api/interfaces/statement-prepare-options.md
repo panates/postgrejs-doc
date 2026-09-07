@@ -1,12 +1,12 @@
 ---
-sidebar_position: 7
+sidebar_position: 10
 ---
-
 
 # StatementPrepareOptions
 
-| Key        | Type          | Default         | Description                            |
-|------------|---------------|-----------------|----------------------------------------|
-| paramTypes | `number[]`    |                 | Specifies data type for each parameter |
-| typeMap    | `DataTypeMap` | *GlobalTypeMap* | Data type map instance                 |
+| Key        | Type          | Default          | Description                            |
+|------------|----------------|------------------|-------------------------------------------|
+| paramTypes | `OID[]`        |                  | Specifies the data type for each parameter |
+| typeMap    | `DataTypeMap`  | `GlobalTypeMap`  | Data type map instance                     |
 
+Used with [PreparedStatement](../classes/prepared-statement.md).
