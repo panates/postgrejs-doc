@@ -1,5 +1,9 @@
 # Dependencies
 /node_modules
+*.tsbuildinfo
+.claude
+graphify-out
+/test-*
 
 # Production
 /build
