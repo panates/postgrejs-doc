@@ -1,50 +1,444 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
+/* ─── Hero ─────────────────────────────────────────────────────────────────── */
 
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
+.hero {
   position: relative;
+  background: #000;
+  padding: 7rem 2rem 6rem;
+  color: white;
   overflow: hidden;
+  min-height: 560px;
+  display: flex;
+  align-items: center;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
+.heroImgWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.heroImg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 55%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 0 45%;
+  display: block;
+}
+
+.heroImgFade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, transparent 20%, #000 65%);
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.heroText {
+  width: 48%;
+  text-align: left;
+}
+
+.heroMeet {
+  font-family: 'Geist', 'Helvetica Neue', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 0.1rem;
+  letter-spacing: 0.04em;
+}
+
+.heroTitle {
+  font-family: 'Sansation', 'Helvetica Neue', sans-serif;
+  font-size: 6.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0 0.4rem;
+  color: #e8a000;
+  letter-spacing: -0.01em;
+  position: relative;
+  left: -16px;
+  top: -16px;
+  margin-bottom: -12px;
+}
+
+.heroLabel {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e8a000;
+  margin-bottom: 1.5rem;
+}
+
+.heroSubtitle {
+  font-size: 1.3rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 2.5rem;
+}
+
+.heroCtas {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.heroBtn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.heroGithubBtn {
+  color: white !important;
+  border: 2px solid rgba(255, 255, 255, 0.85) !important;
+  background: transparent !important;
+}
+
+.heroGithubBtn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: white !important;
+  color: white !important;
+}
+
+@media (max-width: 768px) {
+  .heroImg {
+    width: 100%;
+    opacity: 0.3;
+  }
+  .heroImgFade {
+    background: linear-gradient(to bottom, transparent 30%, #000 80%);
+  }
+  .heroInner {
+    justify-content: center;
+  }
+  .heroText {
+    width: 100%;
+    text-align: center;
+  }
+  .heroCtas {
+    justify-content: center;
+  }
+  .heroMeet {
+    font-size: 1.1rem;
+  }
+  .heroTitle {
+    font-size: 3.5rem;
+  }
+  .heroSubtitle {
+    font-size: 1.1rem;
   }
 }
 
-.buttons {
+/* ─── Pillars ───────────────────────────────────────────────────────────────── */
+
+.pillars {
+  padding: 5rem 0;
+  background: var(--ifm-background-surface-color);
+}
+
+.pillarsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+}
+
+.pillar {
+  text-align: center;
+  padding: 1rem;
+}
+
+.pillarIcon {
+  font-size: 8.8rem;
+  margin-bottom: 1rem;
+  color: var(--ifm-color-primary);
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
-/* The hero image */
-.heroImage {
-  /* Use "linear-gradient" to add a darken background effect to the image (photographer.jpg). This will make the text easier to read */
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("/static/img/main_banner.webp");
-
-  /* Set a specific height */
-  height: 520px;
-
-  /* Position and center the image to scale nicely on all screens */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  position: relative;
-  text-align: center;
+.pillarIconImg {
+  width: 8.8rem;
+  height: 8.8rem;
 }
 
-/* Place text in the middle of the image */
-.heroText {
+.pillarTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.pillarDesc {
+  font-size: 0.95rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .pillarsGrid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* ─── Code example ──────────────────────────────────────────────────────────── */
+
+.codeSection {
+  padding: 5rem 0;
+  background: var(--ifm-background-color);
+}
+
+.codeSectionHeader {
   text-align: center;
-  position: absolute;
-  font-size: 4rem;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
+  max-width: 640px;
+  margin: 0 auto 3rem;
+}
+
+.codeSectionHeader h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.codeSectionHeader p {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.codeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 1.5rem;
+}
+
+.codePanel {
+  min-width: 0;
+}
+
+.codePanelLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 996px) {
+  .codeGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Features ──────────────────────────────────────────────────────────────── */
+
+.features {
+  padding: 5rem 0;
+  background: var(--ifm-background-surface-color);
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.featureCard {
+  padding: 1.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-color);
+}
+
+.featureIcon {
+  font-size: 1.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.featureTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.featureDesc {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 996px) {
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Comparison (Before / After) ────────────────────────────────────────────── */
+
+.comparison {
+  padding: 5rem 0;
+  background: var(--ifm-background-color);
+}
+
+.comparisonHeader {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 3.5rem;
+}
+
+.comparisonHeader h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.comparisonHeader p {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.compareGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 0 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.compareColHeader {
+  padding-bottom: 1rem;
+}
+
+.compareLabelBefore {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-500);
+}
+
+.compareLabelAfter {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+}
+
+.compareCell {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1.1rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  margin-bottom: 0.75rem;
+  background: var(--ifm-background-surface-color);
+}
+
+.compareCell p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-600);
+  line-height: 1.6;
+}
+
+.compareCellAfter {
+  border-color: var(--ifm-color-primary-lightest, #cce0ff);
+  background: color-mix(in srgb, var(--ifm-color-primary) 5%, var(--ifm-background-color));
+}
+
+.compareCellAfter p {
+  color: var(--ifm-color-emphasis-800);
+}
+
+.compareX {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ifm-color-emphasis-400);
+  margin-top: 0.1rem;
+}
+
+.compareCheck {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ifm-color-primary);
+  margin-top: 0.1rem;
+}
+
+.comparisonFooter {
+  text-align: center;
+  max-width: 900px;
+  margin: 2rem auto 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+@media (max-width: 768px) {
+  .compareGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .compareColHeader:last-of-type {
+    margin-top: 1rem;
+  }
+}
+
+/* ─── Quick start ───────────────────────────────────────────────────────────── */
+
+.quickStart {
+  padding: 5rem 0;
+  background: var(--ifm-background-surface-color);
+}
+
+.quickStartInner {
+  text-align: center;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.quickStartInner h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.quickStartInner p {
+  color: var(--ifm-color-emphasis-700);
+  margin-bottom: 1.5rem;
 }
