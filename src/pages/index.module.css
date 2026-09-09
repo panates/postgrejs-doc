@@ -64,7 +64,11 @@
   font-weight: 700;
   line-height: 1;
   margin: 0 0 0.4rem;
-  color: #5a9b79;
+  color: #6ec2a0;
+  text-shadow:
+    0 0 12px rgba(110, 194, 160, 0.55),
+    0 0 32px rgba(110, 194, 160, 0.4),
+    0 0 70px rgba(110, 194, 160, 0.25);
   letter-spacing: -0.01em;
   position: relative;
   left: -16px;
