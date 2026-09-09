@@ -59,6 +59,54 @@ await promise; // rejects with a DatabaseError, SQLSTATE 57014, if the cancel wa
 
 Like the `signal` option, this is a request rather than a guarantee — the statement may finish first. Prefer the per-call `signal` option when you have one available: it does the same thing and delivers the abort/rejection back to the specific call that requested it, rather than to whichever query happens to be running.
 
+## Long Cancellation Keys (PostgreSQL 18+)
+
+The out-of-band cancel protocol above works by sending the server a secret key it handed out when
+the connection was first established — anyone who has that key can cancel the session's running
+query. Under protocol 3.0, that key is always exactly 4 bytes, small enough to be guessed by an
+attacker willing to brute-force it. PostgreSQL 18 added protocol 3.2, which lets the server hand
+out a key up to 256 bytes instead — set `longCancelKey: true` to request it:
+
+```ts
+const connection = new Connection({
+  host: 'localhost',
+  database: 'my_db',
+  longCancelKey: true,
+});
+await connection.connect();
+
+connection.secretKey; // Buffer, up to 256 bytes on a PostgreSQL 18+ server
+```
+
+Turning it on is never a connection-breaking choice. An older server doesn't understand protocol
+3.2, so it replies with `NegotiateProtocolVersion` naming the highest minor version it actually
+supports, and the session proceeds at 3.0 exactly as if `longCancelKey` had never been set — the
+connection still succeeds, `cancel()` still works, the key is just back to 4 bytes.
+
+### Checking whether the server accepted it
+
+`connection.protocolNegotiation` surfaces that reply, if the server sent one:
+
+```ts
+await connection.connect();
+
+if (connection.protocolNegotiation) {
+  console.log('Server only supports protocol minor version:', connection.protocolNegotiation.supportedVersionMinor);
+  console.log('Options it did not recognize:', connection.protocolNegotiation.unrecognizedOptions);
+} else {
+  // Server recognized everything requested, including longCancelKey if it was set
+}
+```
+
+`protocolNegotiation` is `undefined` whenever the server recognized every startup option this
+client asked for — check it after `connect()` if a feature gated behind such an option doesn't
+seem to have taken effect.
+
+:::note
+`connection.secretKey` changed from `number` to `Buffer` in postgrejs 3.1 to accommodate keys
+longer than 4 bytes — a breaking change if you were reading it directly before.
+:::
+
 ## See also
 
 - [API: Connection](../api/classes/connection.md)

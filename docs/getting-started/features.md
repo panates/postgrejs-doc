@@ -35,10 +35,13 @@ sidebar_position: 2
 - **Cancellation** — Any call takes an `AbortSignal`, which also gives per-query timeouts via `AbortSignal.timeout()`. See [Cancellation & Timeouts](../guides/cancellation.md).
 - **Flexible Data Retrieval** — Can return both array and object rows to suit different data processing needs.
 - **Resource Management** — Auto disposal of resources with the `using` syntax ([TC39 Explicit Resource Management](https://github.com/tc39/proposal-explicit-resource-management)), ensuring efficient resource cleanup. See [Resource Management](../guides/resource-management.md).
+- **Long Cancel Key** — Opt in to protocol 3.2 (PostgreSQL 18+) with `longCancelKey`, so a `cancel()` in progress can't be forged by an attacker guessing a short secret key. See [Cancellation & Timeouts](../guides/cancellation.md#long-cancellation-keys-postgresql-18).
+- **Legacy Function Call Protocol** — `callFunction()` calls a function by OID directly over the wire, bypassing SQL entirely, kept for protocol completeness even though `SELECT func(...)` covers the same ground. See [Function Call Protocol](../guides/function-call.md).
+- **Graceful Protocol Renegotiation** — A server that doesn't recognize a requested protocol version or startup option reports back instead of erroring out, surfaced on `Connection.protocolNegotiation`. See [Cancellation & Timeouts](../guides/cancellation.md#long-cancellation-keys-postgresql-18).
 
 ## Feature Comparison
 
-How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js). ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
+How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js) — versions compared: **postgrejs 3.1.0, pg 8.23.0, postgres.js 3.4.9**. ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
 
 | Feature | postgrejs | pg | postgres.js |
 |:---|:---:|:---:|:---:|
@@ -47,11 +50,15 @@ How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-
 | Module system | ESM | ESM/CJS | ESM/CJS |
 | Language | TS | JS | JS |
 | ***Wire protocol*** | | | |
+| Protocol version | 3.2 | 3.0 | 3.0 |
 | Simple Query protocol | ✅ | ✅ | ✅ |
 | Extended Query protocol | ✅ | ✅ | ✅ |
 | Text wire format | ✅ | ✅ | ✅ |
 | Binary wire format | ✅ | 🟡 | ❌ |
 | Per-column format selection | ✅ | ❌ | ❌ |
+| Long cancel key (opt-in) | ✅ | ❌ | ❌ |
+| Legacy Function Call protocol | ✅ | ❌ | ❌ |
+| Graceful protocol renegotiation | ✅ | ❌ | ❌ |
 | ***High-level API*** | | | |
 | Object and array row modes | ✅ | ✅ | ✅ |
 | Dynamic SQL helpers | ✅ `sql` tag | ❌ | ✅ |

@@ -33,9 +33,17 @@ A connection acquired from a `Pool` is constructed internally (`new Connection(p
 | inTransaction     | `boolean`                                                             | true     | Returns `true` if the connection is currently in a transaction |
 | state             | `ConnectionState`                                                     | true     | Returns the current state of the connection                |
 | processID         | `number \| undefined`                                                 | true     | Returns the process ID of the current session               |
-| secretKey         | `number \| undefined`                                                 | true     | Returns the secret key of the current session (used for `cancel()`) |
+| secretKey         | `Buffer \| undefined`                                                 | true     | Returns the secret key of the current session (used for `cancel()`). 4 bytes by default, up to 256 with [`longCancelKey`](../interfaces/database-connection-params.md). Was `number` before v3.1 — a breaking change that came with variable-length keys. |
 | sessionParameters | `Record<string, string>`                                              | true     | Returns the `ParameterStatus` values reported by the server for the current session |
 | runningQueryCount | `number`                                                              | true     | Returns the number of queries currently running on this connection |
+| protocolNegotiation | `NegotiateProtocolVersionMessage \| undefined` | true | The server's `NegotiateProtocolVersion` reply, if it sent one during `connect()`. `undefined` means the server fully recognized everything the startup packet asked for (protocol minor version, any `_pq_.*` options); present only when the server is older/stricter than what was requested. |
+
+`NegotiateProtocolVersionMessage` shape:
+
+| Key                    | Type       | Description                                                                 |
+|------------------------|------------|--------------------------------------------------------------------------------|
+| `supportedVersionMinor` | `number`   | Newest minor protocol version the server supports.                            |
+| `unrecognizedOptions`   | `string[]` | Startup packet options this client sent that the server didn't recognize — empty when the only mismatch is the protocol minor version itself. |
 
 ## Methods
 
@@ -282,6 +290,22 @@ Deletes a large object and its data.
 Asks the server to cancel whatever this connection is currently running. Travels on its own short-lived connection. It is a request, not a guarantee — the cancelled call rejects with SQLSTATE `57014` if the server acted on it. Prefer the per-call `signal` option of `query()`/`execute()`, which does this and reports the abort to the right caller.
 
 `cancel(): Promise<void>`
+
+### callFunction()
+
+The legacy Function Call sub-protocol — calls a function by OID directly, bypassing SQL entirely. Superseded by `SELECT func(...)` over the Simple/Extended Query protocols (what `execute()`/`query()` use, and what every current PostgreSQL client uses exclusively) — kept only for wire-protocol completeness. Arguments and the result travel as raw wire-format bytes, not JS values: the caller is responsible for encoding/decoding them (see a [`DataType`](../interfaces/data-type.md)'s own `encodeBinary`/`decodeBinary` for the format a given OID expects).
+
+`callFunction(functionId: OID, args: (Buffer | null)[], options?: FunctionCallOptions & { signal?: AbortSignal }): Promise<FunctionCallResult>`
+
+| Argument     | Type                                                                    | Default | Description                                                     |
+|--------------|--------------------------------------------------------------------------|---------|---------------------------------------------------------------------|
+| functionId   | `OID`                                                                     |         | OID of the function to call                                          |
+| args         | `(Buffer \| null)[]`                                                      |         | Each argument's own already-encoded wire bytes, or `null` for SQL `NULL` |
+| options      | [FunctionCallOptions](../interfaces/function-call-options.md) `& { signal?: AbortSignal }` |    | Argument/result formats, and an optional abort signal                |
+
+- Returns [FunctionCallResult](../interfaces/function-call-result.md)
+
+See the [Function Call Protocol](../../guides/function-call.md) guide for full examples.
 
 ### startTransaction()
 
