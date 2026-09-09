@@ -16,21 +16,21 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `82831e742a047db42de59e21c9311ec5eb19aa48` |
-| Source commit (short) | `82831e7` |
-| Source commit date | 2026-09-08T00:51:11+03:00 |
-| Source `package.json` version | 3.0.3 |
-| This repo's commit at sync time | `944f298924bd358457ba908c73808e3f532436a5` |
-| Synced at | 2026-09-09T05:03:32Z |
-| Synced by | Claude Code session (retroactive baseline — the content itself was written across several earlier commits in this repo's history; this is the first point a source commit was actually recorded against it) |
+| Source commit | `151779f74a98868f014302370e142c26d56bfc27` |
+| Source commit (short) | `151779f` |
+| Source commit date | 2026-09-09T21:09:41+03:00 |
+| Source `package.json` version | 3.1.0 |
+| This repo's commit at sync time | `99005f3` |
+| Synced at | 2026-09-09T18:11:56Z |
+| Synced by | Claude Code session — covered the 3.0.3→3.1.0 diff (`callFunction()`, `longCancelKey`, `protocolNegotiation`, the `secretKey` type fix) plus the matching README Features/Feature Comparison update |
 
 **To check what's changed in the source since this was recorded:**
 
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline 82831e742a047db42de59e21c9311ec5eb19aa48..origin/dev -- src/ README.md CHANGELOG.md
-git diff 82831e742a047db42de59e21c9311ec5eb19aa48..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline 151779f74a98868f014302370e142c26d56bfc27..origin/dev -- src/ README.md CHANGELOG.md
+git diff 151779f74a98868f014302370e142c26d56bfc27..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
@@ -68,7 +68,7 @@ own HTML layout changed.
 
 ## Navbar version badge
 
-`docusaurus.config.ts`'s navbar has a hardcoded `v3.0.3` badge (linking to npm) — it is **not**
+`docusaurus.config.ts`'s navbar has a hardcoded `v3.1.0` badge (linking to npm) — it is **not**
 read dynamically from the source repo's `package.json` (that path only exists on this machine,
 not on the Cloudflare Pages build image), so update it by hand alongside the main documentation
 sync whenever the source's version changes.
