@@ -93,6 +93,12 @@ const config: Config = {
           href: 'https://codewiki.google/github.com/panates/postgrejs',
         },
         {
+          label: 'v3.0.3',
+          position: 'right',
+          href: 'https://www.npmjs.com/package/postgrejs',
+          className: 'navbar-version-badge',
+        },
+        {
           'aria-label': 'GitHub repository',
           position: 'right',
           href: 'https://github.com/panates/postgrejs',

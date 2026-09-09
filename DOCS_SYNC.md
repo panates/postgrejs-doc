@@ -66,6 +66,13 @@ compatibility fixes (raw HTML `style="..."` → JSX `style={{...}}` object, a bl
 `8078037`, `5c70288`, and `944f298` for exactly what those fixes looked like last time the report's
 own HTML layout changed.
 
+## Navbar version badge
+
+`docusaurus.config.ts`'s navbar has a hardcoded `v3.0.3` badge (linking to npm) — it is **not**
+read dynamically from the source repo's `package.json` (that path only exists on this machine,
+not on the Cloudflare Pages build image), so update it by hand alongside the main documentation
+sync whenever the source's version changes.
+
 ## Updating this file
 
 After any sync, replace the relevant table's values with the new source commit hash

@@ -79,6 +79,24 @@
   --ifm-menu-link-sublist-icon: url('/img/chevron-down-dark.svg');
 }
 
+.navbar-version-badge {
+  font-family: 'Geist Mono', 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  color: var(--ifm-color-emphasis-700);
+  transition: border-color var(--ifm-transition-fast), color var(--ifm-transition-fast);
+}
+
+.navbar-version-badge:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
 .header--github-link {
   width: 32px;
   height: 32px;
