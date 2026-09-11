@@ -86,7 +86,7 @@ See [Resource Management](./resource-management.md) for more on `await using` an
 
 ## Why use a cursor
 
-Without `cursor: true`, `query()` buffers the entire result set in memory before resolving. For queries returning millions of rows, that defeats streaming and can exhaust memory. A cursor keeps only `fetchCount` rows in memory at a time, fetching more from the server as you consume them.
+Without `cursor: true`, `query()` returns at most `fetchCount` rows (100 by default) in `result.rows` — a result set larger than that is silently truncated, not buffered in full, since a plain query is one Bind/Execute/Sync round trip and a suspended portal past `fetchCount` is never resumed. Raising `fetchCount` to cover a large result set brings back the memory problem instead: every row still has to be buffered in memory before `query()` resolves. A cursor is what avoids both — it keeps only `fetchCount` rows in memory at a time, fetching more from the server as you consume them, for a result set of any size.
 
 ## See also
 

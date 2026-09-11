@@ -68,8 +68,8 @@ The full option list — `params`, `objectRows`, `columnFormat`, `cursor`, `fetc
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `autoCommit` | `boolean` | `true` | Whether to run the statement in auto-commit mode. |
-| `cursor` | `boolean` | `false` | Return a [`Cursor`](../api/classes/cursor.md) on `result.cursor` instead of eagerly fetching all rows. |
-| `fetchCount` | `number` | `100` | Rows fetched per round trip; for a cursor, rows fetched per batch. |
+| `cursor` | `boolean` | `false` | Return a [`Cursor`](../api/classes/cursor.md) on `result.cursor` instead of eagerly fetching rows into `result.rows`. |
+| `fetchCount` | `number` | `100` | The hard cap on rows returned in a single round trip — applies whether or not `cursor` is set. Without `cursor: true`, a result set larger than `fetchCount` is silently truncated to `fetchCount` rows, not buffered in full; raise `fetchCount` (or use a cursor) for queries that may return more than 100 rows. |
 | `rollbackOnError` | `boolean` | `true` | Whether an error inside a transaction aborts it or is ignored so the transaction continues. |
 | `utcDates` | `boolean` | `false` | Decode dates/timestamps in UTC instead of system time offset. |
 | `signal` | `AbortSignal` | — | Cancels the running statement on the server when the signal fires. |
