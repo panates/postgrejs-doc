@@ -24,7 +24,7 @@ const cursor = result.cursor!;
 | Key      | Type                                                | Readonly | Description                                                        |
 |----------|-------------------------------------------------------|----------|-------------------------------------------------------------------------|
 | fields   | [FieldInfo](../interfaces/field-info.md)`[]`         | true     | Information about the fields (columns) of the result set                |
-| rowType  | `'array' \| 'object'`                                 | true     | Whether rows are returned as arrays or as `<fieldName, value>` objects, from the query's `objectRows` option |
+| rowType  | `'array' \| 'object' \| 'custom'`                     | true     | The row shape, from the query's `rowDecoder`/`objectRows` option — `'custom'` when a [`RowDecoder`](./row-decoder.md) subclass was supplied |
 | isClosed | `boolean`                                             | true     | Returns `true` once the cursor has been closed                          |
 
 ## Methods

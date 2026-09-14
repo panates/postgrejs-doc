@@ -13,6 +13,8 @@ npm install postgrejs
 ## Requirements
 
 - `node >= 20.x`
+- Bun — the same test suite runs under Bun in CI against PostgreSQL 18 on every push, so it's a supported
+  runtime rather than an untested coincidence.
 
 ## Module format
 

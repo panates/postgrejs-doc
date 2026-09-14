@@ -15,14 +15,22 @@ The descriptor shape used to register a codec for a PostgreSQL type on a [DataTy
 | jsType              | `string`                           |         | Name of the JS type values decode to (informational, shown in [FieldInfo.jsType](./field-info.md))                                                                                               |
 | arraySeparator      | `string`                           | `,`     | Separator used between elements when encoding this type's text-format array literal                                                                                                              |
 | isType              | `(v: any) => boolean`              |         | Predicate used by [`DataTypeMap.determine()`](../classes/data-type-map.md#determine) to guess whether a plain JS value should be sent as this type                                               |
-| decodeBinary        | `DecodeBinaryFunction`             |         | Decodes a value from the binary wire format                                                                                                                                                       |
+| decodeBinary        | `DecodeBinaryFunction`             |         | Decodes a value from the binary wire format — `(buf: Buffer, offset: number, len: number, options) => any`. Must not read past `len`: `buf` is the whole row's shared buffer, not a value-sized slice, so an unbounded decoder returns bytes belonging to whatever follows in the row instead of failing loudly |
 | decodeText          | `DecodeTextFunction`               |         | Decodes a value from the text wire format                                                                                                                                                         |
 | decodeTextBuffer    | `DecodeTextBufferFunction`         |         | Optional fast path: decodes directly from the raw wire `Buffer` instead of the pre-converted UTF-8 string `decodeText` receives. Only meaningful for text-format scalar columns                  |
-| fixedBinarySize     | `number`                           |         | Declares this type's binary representation as always exactly N bytes (e.g. `int4` is always 4). Leave unset for types whose binary length varies by value (`bytea`, `varchar`, `json`, `numeric`) |
 | encodeAsNull        | `EncodeAsNullFunction`             |         | Predicate deciding whether a given value should be encoded as SQL `NULL`                                                                                                                          |
 | encodeBinary        | `EncodeBinaryFunction`             |         | Encodes a value into the binary wire format                                                                                                                                                       |
 | encodeText          | `EncodeTextFunction`               |         | Encodes a value into the text wire format                                                                                                                                                         |
 | encodeCalculateDim  | `EncodeCalculateDimFunction`       |         | For array types, computes the array's dimensions before encoding                                                                                                                                  |
+
+:::note
+Breaking change in v3.3.0: `decodeBinary` used to receive a single `Buffer` already sliced to the
+value's own bytes, plus a separate `fixedBinarySize` field for constant-width types. Both are gone —
+`decodeBinary` now always gets `(buf, offset, len, options)`, the same shape `decodeTextBuffer` has
+always used. A decoder that ignores `len` no longer throws on an out-of-bounds read; it silently
+returns bytes belonging to whatever value follows it in the row, so update any custom `DataType` to
+read only `buf.subarray(offset, offset + len)` (or the equivalent bounded access) before upgrading.
+:::
 
 ## Registering a custom type
 
@@ -35,7 +43,9 @@ const myType: DataType = {
   jsType: 'string',
   isType: v => typeof v === 'string' && v.startsWith('my:'),
   decodeText: v => v,
-  decodeBinary: v => v.toString('utf8'),
+  // buf is the row's own shared buffer, not a value-sized slice - read
+  // exactly `len` bytes starting at `offset`, never past it.
+  decodeBinary: (buf, offset, len) => buf.toString('utf8', offset, offset + len),
 };
 
 const myTypeMap = new DataTypeMap(GlobalTypeMap);

@@ -16,21 +16,21 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `26f03fee1e9aa1413fad69241bfb972fd0be604f` |
-| Source commit (short) | `26f03fe` |
-| Source commit date | 2026-09-12T14:34:26+03:00 |
-| Source `package.json` version | 3.2.0 |
-| This repo's commit at sync time | `07298b0` |
-| Synced at | 2026-09-12T11:38:18Z |
-| Synced by | Claude Code session — reviewed the 3.1.0→3.2.0 diff (v3.1.1–v3.1.3, v3.2.0): no new/changed public API or README feature-list entries — just the `_transactionDepth` reset fix in `prepareTransaction()` (already covered in the two-phase-commit guide's existing behavior), an internal SmartBuffer/BufferReader refactor onto `flexy-buffer` with no public surface change, and a CI-only test fix for the long-cancel-key assertion below PostgreSQL 18. Bumped the navbar version badge to v3.2.0. |
+| Source commit | `0420895da033d8e4b51354e69c29e308b87561c8` |
+| Source commit (short) | `0420895` |
+| Source commit date | 2026-09-14T17:57:36+03:00 |
+| Source `package.json` version | 3.3.0 |
+| This repo's commit at sync time | `66bccb6` (this sync's own commit follows it) |
+| Synced at | 2026-09-14T15:12:08Z |
+| Synced by | Claude Code session — reviewed the 3.2.0→3.3.0 diff. New: **RowDecoder** (pluggable row decoding — new guide `guides/row-decoder.md` + API page `api/classes/row-decoder.md`, `rowDecoder` added to `QueryOptions`/`ScriptExecuteOptions`, `rowType` gains `'custom'`, `objectRows` marked deprecated); **Bun support** (README now says "for Node.js and Bun", CI runs the suite under Bun) — added to `installation.md`'s Requirements and rebranded the site tagline/hero/meta description site-wide. Breaking change: `DataType.decodeBinary` signature changed to `(buf, offset, len, options)`, `fixedBinarySize` removed — fixed the stale example/table in `api/interfaces/data-type.md` and `migration-from-v2.md`. Bug fix (`timestamptz` binary DST decode) needed no doc change — nothing in the docs asserted the old, wrong behavior. Bumped the navbar version badge to v3.3.0. |
 
 **To check what's changed in the source since this was recorded:**
 
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline 26f03fee1e9aa1413fad69241bfb972fd0be604f..origin/dev -- src/ README.md CHANGELOG.md
-git diff 26f03fee1e9aa1413fad69241bfb972fd0be604f..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline 0420895da033d8e4b51354e69c29e308b87561c8..origin/dev -- src/ README.md CHANGELOG.md
+git diff 0420895da033d8e4b51354e69c29e308b87561c8..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
@@ -38,37 +38,39 @@ signatures or option defaults (need corrections in the relevant guide + API page
 feature-list or feature-comparison-table entries (need a new guide page + homepage update), and
 any `CHANGELOG.md` entries not yet reflected in `docs/migration-from-v2.md` or the guides.
 
-## Benchmarks page (`docs/getting-started/benchmarks.md`)
+## Benchmarks pages (`docs/getting-started/benchmarks.md` + `benchmarks-bun.md`)
 
-This one is copied close to verbatim from `doc/BENCHMARKS.md` in the source repo and gets
-regenerated independently of the rest of the docs (a different run of `npm run bench:report`
-doesn't imply any API/feature change) — track it separately.
+Copied close to verbatim from the source repo's `doc/BENCHMARKS.md` (Node) and `doc/BENCHMARKS-bun.md`
+(Bun, added in the 3.3.0 sync) and regenerated independently of the rest of the docs (a different run of
+`npm run bench:report`/`bench:bun` doesn't imply any API/feature change) — track both separately from the
+main documentation.
 
 | Field | Value |
 |---|---|
-| Source file | `/Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md` |
-| Source commit at last copy | `82831e742a047db42de59e21c9311ec5eb19aa48` |
-| Benchmark run date (from the report itself) | 2026-09-07T21:49:59.163Z |
-| Library versions in that run | PostgreJS 3.0.3, pg 8.23.0, postgres 3.4.9 |
-| This repo's commit at sync time | `944f298924bd358457ba908c73808e3f532436a5` |
-| Synced at | 2026-09-09T05:03:32Z |
+| Source files | `/Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md` (Node), `doc/BENCHMARKS-bun.md` (Bun) |
+| Source commit at last copy | `0420895da033d8e4b51354e69c29e308b87561c8` |
+| Node run date (from the report itself) | 2026-09-14T14:56:39.954Z |
+| Bun run date (from the report itself) | 2026-09-14T14:56:39.975Z |
+| Library versions in that run | PostgreJS 3.3.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
+| This repo's commit at sync time | `66bccb6` (this sync's own commit follows it) |
+| Synced at | 2026-09-14T15:12:08Z |
 
 **To check for a newer report:**
 
 ```bash
-grep -n "Run date" /Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md
+grep -n "Run date" /Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md /Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS-bun.md
 ```
 
-If the run date is newer than the one recorded above, re-copy the file and reapply the MDX
+If either run date is newer than the ones recorded above, re-copy that file and reapply the MDX
 compatibility fixes (raw HTML `style="..."` → JSX `style={{...}}` object, a blank line after every
-`</div>`/`</table>`, `<tbody>` if the layout ever goes back to `<table>`, and the relative
-`benchmark/README.md` link → an absolute GitHub URL) — see this repo's commit history around
-`8078037`, `5c70288`, and `944f298` for exactly what those fixes looked like last time the report's
-own HTML layout changed.
+`</div>`/`</table>`, `<tbody>` if the layout ever goes back to `<table>`, the relative
+`benchmark/README.md` link → an absolute GitHub URL, and the frontmatter/H1 title swap) — see this repo's
+commit history around `8078037`, `5c70288`, `944f298`, and the 3.3.0 sync commit for exactly what those
+fixes looked like each time the report's own HTML layout changed.
 
 ## Navbar version badge
 
-`docusaurus.config.ts`'s navbar has a hardcoded `v3.2.0` badge (linking to npm) — it is **not**
+`docusaurus.config.ts`'s navbar has a hardcoded `v3.3.0` badge (linking to npm) — it is **not**
 read dynamically from the source repo's `package.json` (that path only exists on this machine,
 not on the Cloudflare Pages build image), so update it by hand alongside the main documentation
 sync whenever the source's version changes.

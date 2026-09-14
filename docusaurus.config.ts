@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm';
 
 const config: Config = {
   title: 'PostgreJS',
-  tagline: 'Blazing Fast PostgreSQL Client for Node.js',
+  tagline: 'Blazing Fast PostgreSQL Client for Node.js and Bun',
   organizationName: 'panates',
   projectName: 'postgrejs-doc',
   url: 'https://www.postgrejs.com',
@@ -21,7 +21,7 @@ const config: Config = {
       'docusaurus-plugin-llms',
       {
         title: 'PostgreJS Documentation',
-        description: 'A blazing fast PostgreSQL client for Node.js — full reference for connections, pooling, querying, data types, and every feature built from the wire protocol up.',
+        description: 'A blazing fast PostgreSQL client for Node.js and Bun — full reference for connections, pooling, querying, data types, and every feature built from the wire protocol up.',
         generateLLMsTxt: true,
         generateLLMsFullTxt: true,
         excludeImports: true,
@@ -32,10 +32,12 @@ const config: Config = {
   ],
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
 
   markdown: {
     mermaid: true,
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
   },
 
   themes: ['@docusaurus/theme-mermaid'],
@@ -93,7 +95,7 @@ const config: Config = {
           href: 'https://codewiki.google/github.com/panates/postgrejs',
         },
         {
-          label: 'v3.2.0',
+          label: 'v3.3.0',
           position: 'right',
           href: 'https://www.npmjs.com/package/postgrejs',
           className: 'navbar-version-badge',

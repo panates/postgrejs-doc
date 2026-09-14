@@ -45,7 +45,7 @@ const MyType: DataType = {
   name: 'my_type',
   oid: 90000,
   jsType: 'string',
-  decodeBinary(v: Buffer): string {
+  decodeBinary(buf: Buffer, offset: number, len: number): string {
     /* ... */
   },
   decodeText(v: string): string {
@@ -54,6 +54,8 @@ const MyType: DataType = {
   isType: v => typeof v === 'string',
 };
 ```
+
+`decodeBinary`'s own signature changed again since — see the [`DataType`](./api/interfaces/data-type.md) reference for the current `(buf, offset, len, options)` shape and the v3.3.0 breaking change that introduced it.
 
 ### License change: MIT → BSD-3-Clause
 
@@ -76,5 +78,6 @@ None of the following requires changes to existing code — all are new, opt-in 
 - **[Multi-host connections](./guides/multi-host.md)** — a `hosts` list with automatic failover and `targetSessionAttrs` to pick the right server in a cluster.
 - **[SCRAM channel binding and direct TLS negotiation](./guides/ssl-tls.md)** — `channelBinding` (default `prefer`) and `sslNegotiation: 'direct'` (skips the `SSLRequest` round trip against PostgreSQL 17+).
 - **[Two-phase commit](./guides/two-phase-commit.md)** — `prepareTransaction()` / `commitPrepared()`.
+- **[Custom row decoding](./guides/row-decoder.md)** — a pluggable `RowDecoder` for taking over how a row's raw wire data becomes a value, e.g. lazy per-cell decoding.
 
 For the full list of fixes and improvements, see the project's `CHANGELOG.md`.

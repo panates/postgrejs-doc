@@ -36,7 +36,7 @@ await connection.query('select * from customers where id = ANY($1)', {
 
 See [Query Parameters & Type Casting](./query-parameters.md) for how parameter types are detected and how to override them with `BindParam`.
 
-## `objectRows`
+## `objectRows` / `rowDecoder`
 
 Controls the row shape: array-of-values (default) or array-of-objects keyed by field name.
 
@@ -46,6 +46,8 @@ await connection.query('select id, name from countries'); // rows: [['CA', 'Cana
 await connection.query('select id, name from countries', { objectRows: true });
 // rows: [{ id: 'CA', name: 'Canada' }, ...]
 ```
+
+`rowDecoder: 'object'` does the same thing as `objectRows: true` — `objectRows` is deprecated in its favor, though it keeps working unchanged. `rowDecoder` also accepts a [`RowDecoder`](../api/classes/row-decoder.md) subclass to take over row decoding entirely, e.g. for lazy per-cell decoding. See [Custom Row Decoding](./row-decoder.md).
 
 ## `columnFormat`
 
@@ -63,13 +65,14 @@ Binary is the default (`DataFormat.binary`) and is generally faster to decode. p
 
 ## `QueryOptions` reference
 
-The full option list — `params`, `objectRows`, `columnFormat`, `cursor`, `fetchCount`, `autoCommit`, `rollbackOnError`, `utcDates`, `signal`, `typeMap`, `fetchAsString`, `asyncErrorHandling` — is documented in [`QueryOptions`](../api/interfaces/query-options.md). Notable ones:
+The full option list — `params`, `objectRows`, `rowDecoder`, `columnFormat`, `cursor`, `fetchCount`, `autoCommit`, `rollbackOnError`, `utcDates`, `signal`, `typeMap`, `fetchAsString`, `asyncErrorHandling` — is documented in [`QueryOptions`](../api/interfaces/query-options.md). Notable ones:
 
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `autoCommit` | `boolean` | `true` | Whether to run the statement in auto-commit mode. |
 | `cursor` | `boolean` | `false` | Return a [`Cursor`](../api/classes/cursor.md) on `result.cursor` instead of eagerly fetching rows into `result.rows`. |
 | `fetchCount` | `number` | `100` | The hard cap on rows returned in a single round trip — applies whether or not `cursor` is set. Without `cursor: true`, a result set larger than `fetchCount` is silently truncated to `fetchCount` rows, not buffered in full; raise `fetchCount` (or use a cursor) for queries that may return more than 100 rows. |
+| `rowDecoder` | `'array' \| 'object' \| RowDecoder` | `'array'` | How a row's raw wire data becomes a value — see above. |
 | `rollbackOnError` | `boolean` | `true` | Whether an error inside a transaction aborts it or is ignored so the transaction continues. |
 | `utcDates` | `boolean` | `false` | Decode dates/timestamps in UTC instead of system time offset. |
 | `signal` | `AbortSignal` | — | Cancels the running statement on the server when the signal fires. |
@@ -86,3 +89,4 @@ Pass `cursor: true` to get back a [`Cursor`](../api/classes/cursor.md) instead o
 - [Simple Query](./simple-query.md)
 - [Query Parameters & Type Casting](./query-parameters.md)
 - [Cursors](./cursors.md)
+- [Custom Row Decoding](./row-decoder.md)

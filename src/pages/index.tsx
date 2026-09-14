@@ -321,7 +321,7 @@ function QuickStart() {
 
 export default function Home(): React.JSX.Element {
   return (
-    <Layout description="Blazing fast PostgreSQL client for Node.js — up to 6.6× faster than the competition, with a binary wire protocol built from scratch.">
+    <Layout description="Blazing fast PostgreSQL client for Node.js and Bun — up to 6.6× faster than the competition, with a binary wire protocol built from scratch.">
       <Hero />
       <main>
         <Pillars />
