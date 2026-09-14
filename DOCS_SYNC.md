@@ -20,7 +20,7 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source commit (short) | `0420895` |
 | Source commit date | 2026-09-14T17:57:36+03:00 |
 | Source `package.json` version | 3.3.0 |
-| This repo's commit at sync time | `66bccb6` (this sync's own commit follows it) |
+| This repo's commit at sync time | `2aec1e8` |
 | Synced at | 2026-09-14T15:12:08Z |
 | Synced by | Claude Code session — reviewed the 3.2.0→3.3.0 diff. New: **RowDecoder** (pluggable row decoding — new guide `guides/row-decoder.md` + API page `api/classes/row-decoder.md`, `rowDecoder` added to `QueryOptions`/`ScriptExecuteOptions`, `rowType` gains `'custom'`, `objectRows` marked deprecated); **Bun support** (README now says "for Node.js and Bun", CI runs the suite under Bun) — added to `installation.md`'s Requirements and rebranded the site tagline/hero/meta description site-wide. Breaking change: `DataType.decodeBinary` signature changed to `(buf, offset, len, options)`, `fixedBinarySize` removed — fixed the stale example/table in `api/interfaces/data-type.md` and `migration-from-v2.md`. Bug fix (`timestamptz` binary DST decode) needed no doc change — nothing in the docs asserted the old, wrong behavior. Bumped the navbar version badge to v3.3.0. |
 
@@ -52,7 +52,7 @@ main documentation.
 | Node run date (from the report itself) | 2026-09-14T14:56:39.954Z |
 | Bun run date (from the report itself) | 2026-09-14T14:56:39.975Z |
 | Library versions in that run | PostgreJS 3.3.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
-| This repo's commit at sync time | `66bccb6` (this sync's own commit follows it) |
+| This repo's commit at sync time | `2aec1e8` |
 | Synced at | 2026-09-14T15:12:08Z |
 
 **To check for a newer report:**
