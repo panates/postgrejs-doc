@@ -20,8 +20,8 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source commit (short) | `c82d8fc` |
 | Source commit date | 2026-09-15T21:34:13+03:00 |
 | Source `package.json` version | 3.4.0 |
-| This repo's commit at sync time | _(fill in after committing this sync)_ |
-| Synced at | _(fill in after committing)_ |
+| This repo's commit at sync time | `5d58168` |
+| Synced at | 2026-09-15T18:40:00Z |
 | Synced by | Claude Code session — reviewed the 3.3.0→3.4.0 diff. New: **`PreparedStatement.executeBatch()`** (runs one statement over many parameter sets under a single `Sync`/transaction — new "Batch Execution" section in `guides/prepared-statements.md`, `executeBatch()` added to `api/classes/prepared-statement.md`, new `api/interfaces/batch-result.md`, `batchIndex`/`batchResults` added to `api/classes/database-error.md`). Not yet in the source README's own Features/Feature Comparison lists as of this commit, so — consistent with how RowDecoder was handled last sync — not added to `getting-started/features.md` either; only the guide/API reference were written. Bumped the navbar version badge to v3.4.0. |
 
 **To check what's changed in the source since this was recorded:**
