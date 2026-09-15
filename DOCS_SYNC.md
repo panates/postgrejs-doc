@@ -16,21 +16,21 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `c82d8fcd79e3c07db4e354802a4799047c07c8c4` |
-| Source commit (short) | `c82d8fc` |
-| Source commit date | 2026-09-15T21:34:13+03:00 |
+| Source commit | `62faa88ee843ca65b58edfa4a9809b93d1dd73a1` |
+| Source commit (short) | `62faa88` |
+| Source commit date | 2026-09-15T23:24:42+03:00 |
 | Source `package.json` version | 3.4.0 |
-| This repo's commit at sync time | `5d58168` |
-| Synced at | 2026-09-15T18:40:00Z |
-| Synced by | Claude Code session — reviewed the 3.3.0→3.4.0 diff. New: **`PreparedStatement.executeBatch()`** (runs one statement over many parameter sets under a single `Sync`/transaction — new "Batch Execution" section in `guides/prepared-statements.md`, `executeBatch()` added to `api/classes/prepared-statement.md`, new `api/interfaces/batch-result.md`, `batchIndex`/`batchResults` added to `api/classes/database-error.md`). Not yet in the source README's own Features/Feature Comparison lists as of this commit, so — consistent with how RowDecoder was handled last sync — not added to `getting-started/features.md` either; only the guide/API reference were written. Bumped the navbar version badge to v3.4.0. |
+| This repo's commit at sync time | _(fill in after committing this sync)_ |
+| Synced at | _(fill in after committing)_ |
+| Synced by | Claude Code session — reviewed the 3.3.0→3.4.0 diff in two passes. First pass covered the code (`PreparedStatement.executeBatch()`: new "Batch Execution" section in `guides/prepared-statements.md`, `executeBatch()` on `api/classes/prepared-statement.md`, new `api/interfaces/batch-result.md`, `batchIndex`/`batchResults` on `api/classes/database-error.md`) while the source README hadn't listed it yet. A second pass, after the README caught up (`62faa88`), added the matching **Batch Execution** bullet and **Batch execution** Feature Comparison row to `getting-started/features.md`, and bumped the comparison table's version caption to postgrejs 3.4.0. Bumped the navbar version badge to v3.4.0. |
 
 **To check what's changed in the source since this was recorded:**
 
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline c82d8fcd79e3c07db4e354802a4799047c07c8c4..origin/dev -- src/ README.md CHANGELOG.md
-git diff c82d8fcd79e3c07db4e354802a4799047c07c8c4..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline 62faa88ee843ca65b58edfa4a9809b93d1dd73a1..origin/dev -- src/ README.md CHANGELOG.md
+git diff 62faa88ee843ca65b58edfa4a9809b93d1dd73a1..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
