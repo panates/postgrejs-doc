@@ -61,6 +61,35 @@ for (let i = 0; i < 100; i++) {
 await statement.close();
 ```
 
+### executeBatch()
+
+Runs the statement once per parameter set, sending every `Bind`/`Execute` before waiting on any of them and closing the whole batch with a single `Sync` — the sets share one implicit transaction (unless one is already open) and a rejected set stops the ones behind it from running.
+
+`executeBatch(paramSets: any[][], options?: QueryOptions): Promise<BatchResult>`
+
+| Argument  | Type                                            | Default | Description                                                                 |
+|-----------|--------------------------------------------------|---------|------------------------------------------------------------------------------|
+| paramSets | `any[][]`                                        |         | One array of bind parameters per execution                                   |
+| options   | [QueryOptions](../interfaces/query-options.md)   |         | Applied to every set — the same options `execute()` takes, minus `fetchCount` and `cursor`, which a batch cannot honor |
+
+- Returns [BatchResult](../interfaces/batch-result.md)
+- Throws a [DatabaseError](./database-error.md) carrying `batchIndex` (which set was rejected) and `batchResults` (the sets that completed before it), if the server rejects a set
+- Throws `TypeError` if `paramSets` isn't an array
+- Throws if `options.cursor` is set — a batch runs every set to completion under one `Sync`, so there's no portal left to fetch from
+
+```ts
+const stmt = await connection.prepare('update users set name = $1 where id = $2');
+const batch = await stmt.executeBatch([
+  ['John', 1],
+  ['Jane', 2],
+  ['Bob', 3],
+]);
+batch.results.map(r => r.rowsAffected); // [1, 1, 0]
+batch.totalRowsAffected;                // 2
+```
+
+See [Prepared Statements](../../guides/prepared-statements.md#batch-execution) for the full guide, including why this is a separate method rather than an option on `execute()`.
+
 ### close()
 
 Closes the statement. `PreparedStatement` is refcounted: each open [Cursor](./cursor.md) obtained from `execute({ cursor: true })` holds an extra reference, so the statement's server-side resources are only actually released once every such cursor has also been closed and `close()` has been called once per outstanding reference.

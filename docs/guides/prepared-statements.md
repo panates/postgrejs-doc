@@ -73,6 +73,70 @@ try {
 and so on. See [API: PreparedStatement](../api/classes/prepared-statement.md) for
 the full method signature.
 
+## Batch Execution
+
+`execute()` in a loop (or `Promise.all()` of `execute()` calls) sends a `Bind`/`Execute`/`Sync` per parameter
+set — each one makes the server close an implicit transaction and answer `ReadyForQuery`, whether or not you
+asked for that. `executeBatch(paramSets, options?)` runs the statement once per set the same way, but closes
+the whole batch with a single `Sync` instead of one per set:
+
+```ts
+const stmt = await connection.prepare(
+  'update users set name = $1 where id = $2',
+);
+try {
+  const batch = await stmt.executeBatch([
+    ['John', 1],
+    ['Jane', 2],
+    ['Bob', 3],
+  ]);
+  batch.results.map(r => r.rowsAffected); // [1, 1, 0] — third id didn't match a row
+  batch.totalRowsAffected;                // 2
+} finally {
+  await stmt.close();
+}
+```
+
+Collapsing per-set `Sync` into one is the whole mechanism, and it's substantial: 1000 updates through a loop
+of `execute()` calls took 194ms in the project's own benchmark, against 21ms through `executeBatch()` — with
+socket reads dropping from 972 to 3.
+
+That single `Sync` has three consequences, and they're why this is a separate method instead of an option on
+`execute()`:
+
+- **One shared transaction.** Unless an explicit transaction is already open, the whole batch commits or
+  rolls back together — unlike a loop of `execute()` calls, where each one commits on its own.
+- **A failing set stops the rest.** PostgreSQL discards everything between an error and the `Sync`, so sets
+  after a rejected one never run. The thrown [`DatabaseError`](../api/classes/database-error.md) gains
+  `batchIndex` (which set was rejected) and `batchResults` (the sets that had already completed):
+
+  ```ts
+  try {
+    await stmt.executeBatch([[10], [1], [11]]); // set #1 hits a duplicate key
+  } catch (e) {
+    e.code;          // '23505'
+    e.batchIndex;     // 1 — set #1 was the one rejected
+    e.batchResults;    // results for set #0, which had already run
+    // ...but set #0 is rolled back along with everything else, unless an
+    // explicit transaction was already open before executeBatch() was called.
+  }
+  ```
+
+- **`fetchCount` and `cursor` don't apply.** Every `Execute` in a batch must run to completion — a portal
+  suspended mid-batch would answer `PortalSuspended` instead of `CommandComplete` and desynchronize the
+  positional mapping from sets to results. `fetchCount` is ignored, and passing `cursor: true` throws.
+
+Sets that return rows get them decoded into `results[i].rows` exactly as `execute()` would, `rowDecoder`
+included — a plain `UPDATE`/`INSERT` without `RETURNING` leaves `rows` `undefined` rather than an empty
+array.
+
+For a bulk `INSERT` specifically, [`connection.copyFrom()`](./copy.md) is faster still, and a single
+`UPDATE ... FROM (VALUES ...)` beats `executeBatch()` for bulk updates of one shape — at the cost of
+PostgreSQL's 65535-parameter ceiling. `executeBatch()` is the general answer when neither of those fits.
+
+See [API: PreparedStatement.executeBatch()](../api/classes/prepared-statement.md#executebatch) and
+[BatchResult](../api/interfaces/batch-result.md) for the full reference.
+
 ## Reference Counting
 
 `PreparedStatement.close()` does not always tear the statement down on the wire

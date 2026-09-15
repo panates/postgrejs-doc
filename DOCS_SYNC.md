@@ -16,21 +16,21 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `0420895da033d8e4b51354e69c29e308b87561c8` |
-| Source commit (short) | `0420895` |
-| Source commit date | 2026-09-14T17:57:36+03:00 |
-| Source `package.json` version | 3.3.0 |
-| This repo's commit at sync time | `2aec1e8` |
-| Synced at | 2026-09-14T15:12:08Z |
-| Synced by | Claude Code session — reviewed the 3.2.0→3.3.0 diff. New: **RowDecoder** (pluggable row decoding — new guide `guides/row-decoder.md` + API page `api/classes/row-decoder.md`, `rowDecoder` added to `QueryOptions`/`ScriptExecuteOptions`, `rowType` gains `'custom'`, `objectRows` marked deprecated); **Bun support** (README now says "for Node.js and Bun", CI runs the suite under Bun) — added to `installation.md`'s Requirements and rebranded the site tagline/hero/meta description site-wide. Breaking change: `DataType.decodeBinary` signature changed to `(buf, offset, len, options)`, `fixedBinarySize` removed — fixed the stale example/table in `api/interfaces/data-type.md` and `migration-from-v2.md`. Bug fix (`timestamptz` binary DST decode) needed no doc change — nothing in the docs asserted the old, wrong behavior. Bumped the navbar version badge to v3.3.0. |
+| Source commit | `c82d8fcd79e3c07db4e354802a4799047c07c8c4` |
+| Source commit (short) | `c82d8fc` |
+| Source commit date | 2026-09-15T21:34:13+03:00 |
+| Source `package.json` version | 3.4.0 |
+| This repo's commit at sync time | _(fill in after committing this sync)_ |
+| Synced at | _(fill in after committing)_ |
+| Synced by | Claude Code session — reviewed the 3.3.0→3.4.0 diff. New: **`PreparedStatement.executeBatch()`** (runs one statement over many parameter sets under a single `Sync`/transaction — new "Batch Execution" section in `guides/prepared-statements.md`, `executeBatch()` added to `api/classes/prepared-statement.md`, new `api/interfaces/batch-result.md`, `batchIndex`/`batchResults` added to `api/classes/database-error.md`). Not yet in the source README's own Features/Feature Comparison lists as of this commit, so — consistent with how RowDecoder was handled last sync — not added to `getting-started/features.md` either; only the guide/API reference were written. Bumped the navbar version badge to v3.4.0. |
 
 **To check what's changed in the source since this was recorded:**
 
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline 0420895da033d8e4b51354e69c29e308b87561c8..origin/dev -- src/ README.md CHANGELOG.md
-git diff 0420895da033d8e4b51354e69c29e308b87561c8..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline c82d8fcd79e3c07db4e354802a4799047c07c8c4..origin/dev -- src/ README.md CHANGELOG.md
+git diff c82d8fcd79e3c07db4e354802a4799047c07c8c4..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
@@ -70,7 +70,7 @@ fixes looked like each time the report's own HTML layout changed.
 
 ## Navbar version badge
 
-`docusaurus.config.ts`'s navbar has a hardcoded `v3.3.0` badge (linking to npm) — it is **not**
+`docusaurus.config.ts`'s navbar has a hardcoded `v3.4.0` badge (linking to npm) — it is **not**
 read dynamically from the source repo's `package.json` (that path only exists on this machine,
 not on the Cloudflare Pages build image), so update it by hand alongside the main documentation
 sync whenever the source's version changes.
