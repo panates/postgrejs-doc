@@ -20,8 +20,8 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source commit (short) | `62faa88` |
 | Source commit date | 2026-09-15T23:24:42+03:00 |
 | Source `package.json` version | 3.4.0 |
-| This repo's commit at sync time | _(fill in after committing this sync)_ |
-| Synced at | _(fill in after committing)_ |
+| This repo's commit at sync time | `128b5d5` |
+| Synced at | 2026-09-15T20:26:08Z |
 | Synced by | Claude Code session — reviewed the 3.3.0→3.4.0 diff in two passes. First pass covered the code (`PreparedStatement.executeBatch()`: new "Batch Execution" section in `guides/prepared-statements.md`, `executeBatch()` on `api/classes/prepared-statement.md`, new `api/interfaces/batch-result.md`, `batchIndex`/`batchResults` on `api/classes/database-error.md`) while the source README hadn't listed it yet. A second pass, after the README caught up (`62faa88`), added the matching **Batch Execution** bullet and **Batch execution** Feature Comparison row to `getting-started/features.md`, and bumped the comparison table's version caption to postgrejs 3.4.0. Bumped the navbar version badge to v3.4.0. |
 
 **To check what's changed in the source since this was recorded:**
