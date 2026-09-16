@@ -1,5 +1,6 @@
 ---
-sidebar_position: 24
+sidebar_position: 7
+slug: /guides/row-decoder
 ---
 
 # Custom Row Decoding

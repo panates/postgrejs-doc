@@ -64,4 +64,4 @@ Decodes a row into a `<fieldName, value>` object, same as `parseObjectRow()`. Us
 
 - [`QueryOptions.rowDecoder`](../interfaces/query-options.md), [`ScriptExecuteOptions.rowDecoder`](../interfaces/script-execute-options.md)
 - [`CommandResult.rowType`](../interfaces/command-result.md), [`Cursor.rowType`](./cursor.md#properties)
-- [Extended Query](../../guides/extended-query.md)
+- [Extended Query](../../querying/extended-query.md)

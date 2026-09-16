@@ -1,5 +1,6 @@
 ---
-sidebar_position: 21
+sidebar_position: 2
+slug: /guides/error-handling
 ---
 
 # Error Handling

@@ -62,8 +62,8 @@ console.log(result.rows);
 await connection.close();
 ```
 
-See [Getting Started](getting-started/installation.md) for setup details, [Features](getting-started/features.md)
-for the full feature list and comparison against `pg`/`postgres.js`, and the [Guides](guides/single-connection.md) for
+See [Getting Started](./getting-started/installation.md) for setup details, [Features](./getting-started/features.md)
+for the full feature list and comparison against `pg`/`postgres.js`, and the [Guides](./connecting/single-connection.md) for
 connection pooling, cursors, transactions, and more.
 
 ## Node.js Compatibility
@@ -72,4 +72,4 @@ connection pooling, cursors, transactions, and more.
 
 ## License
 
-postgrejs is available under the [BSD-3-Clause](license.md) license.
+postgrejs is available under the [BSD-3-Clause](./license.md) license.

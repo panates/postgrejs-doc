@@ -1,5 +1,6 @@
 ---
-sidebar_position: 16
+sidebar_position: 5
+slug: /guides/multi-host
 ---
 
 # Multi-Host & Failover

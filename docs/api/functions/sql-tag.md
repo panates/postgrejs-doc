@@ -88,4 +88,4 @@ Returns: `string`
 
 Writes the request's values in as literals, for use with the Simple Query protocol (`connection.execute()`), which carries no out-of-band parameters. Every value is encoded by its own data type and given an explicit cast; a value whose type has no text encoding throws rather than falling back to a generic conversion. Parameters (via `query()`) are safe by construction — literals are only as safe as the encoder, which is why `stringify()` refuses to guess instead of producing something that looks plausible.
 
-See the [The sql Template Tag](../../guides/sql-tag.md) guide for a fuller walkthrough.
+See the [The sql Template Tag](../../querying/sql-tag.md) guide for a fuller walkthrough.

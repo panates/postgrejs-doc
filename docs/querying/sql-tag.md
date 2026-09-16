@@ -1,5 +1,6 @@
 ---
-sidebar_position: 18
+sidebar_position: 8
+slug: /guides/sql-tag
 ---
 
 # The `sql` Template Tag

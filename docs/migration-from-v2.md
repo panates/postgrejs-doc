@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 9
 ---
 
 # Migration from v2
@@ -69,15 +69,15 @@ v3 requires `node >= 20.x`. See [Installation](./getting-started/installation.md
 
 None of the following requires changes to existing code — all are new, opt-in capabilities:
 
-- **[COPY streams](./guides/copy.md)** — bulk import/export via `connection.copyTo()` / `connection.copyFrom()` as Node streams.
-- **[Large objects](./guides/large-objects.md)** — stream data through PostgreSQL's large object API for values too big for `bytea`.
-- **[Logical replication](./guides/logical-replication.md)** — stream row-level changes as they commit.
-- **[The `sql` tag](./guides/sql-tag.md)** — build statements from a template literal instead of hand-rolled string concatenation.
-- **[Opt-in query pipelining](./guides/pooling.md)** — `Pool.query()` / `Pool.execute()` can pipeline requests onto a connection, per call.
-- **[Cancellation and timeouts](./guides/cancellation.md)** — pass an `AbortSignal` to cancel a running query.
-- **[Multi-host connections](./guides/multi-host.md)** — a `hosts` list with automatic failover and `targetSessionAttrs` to pick the right server in a cluster.
-- **[SCRAM channel binding and direct TLS negotiation](./guides/ssl-tls.md)** — `channelBinding` (default `prefer`) and `sslNegotiation: 'direct'` (skips the `SSLRequest` round trip against PostgreSQL 17+).
-- **[Two-phase commit](./guides/two-phase-commit.md)** — `prepareTransaction()` / `commitPrepared()`.
-- **[Custom row decoding](./guides/row-decoder.md)** — a pluggable `RowDecoder` for taking over how a row's raw wire data becomes a value, e.g. lazy per-cell decoding.
+- **[COPY streams](./bulk-data/copy.md)** — bulk import/export via `connection.copyTo()` / `connection.copyFrom()` as Node streams.
+- **[Large objects](./bulk-data/large-objects.md)** — stream data through PostgreSQL's large object API for values too big for `bytea`.
+- **[Logical replication](./bulk-data/logical-replication.md)** — stream row-level changes as they commit.
+- **[The `sql` tag](./querying/sql-tag.md)** — build statements from a template literal instead of hand-rolled string concatenation.
+- **[Opt-in query pipelining](./connecting/pooling.md)** — `Pool.query()` / `Pool.execute()` can pipeline requests onto a connection, per call.
+- **[Cancellation and timeouts](./reliability/cancellation.md)** — pass an `AbortSignal` to cancel a running query.
+- **[Multi-host connections](./connecting/multi-host.md)** — a `hosts` list with automatic failover and `targetSessionAttrs` to pick the right server in a cluster.
+- **[SCRAM channel binding and direct TLS negotiation](./connecting/ssl-tls.md)** — `channelBinding` (default `prefer`) and `sslNegotiation: 'direct'` (skips the `SSLRequest` round trip against PostgreSQL 17+).
+- **[Two-phase commit](./transactions/two-phase-commit.md)** — `prepareTransaction()` / `commitPrepared()`.
+- **[Custom row decoding](./querying/row-decoder.md)** — a pluggable `RowDecoder` for taking over how a row's raw wire data becomes a value, e.g. lazy per-cell decoding.
 
 For the full list of fixes and improvements, see the project's `CHANGELOG.md`.

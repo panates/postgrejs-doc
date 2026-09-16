@@ -10,4 +10,4 @@ Return value of [`Connection.callFunction()`](../classes/connection.md#callfunct
 |----------|-----------------|--------------------------------------------------------------------------------------------------|
 | `result` | `Buffer \| null` | The function's return value, in the wire format requested via `FunctionCallOptions.resultFormat` — `null` if it returned SQL `NULL`. |
 
-See the [Function Call Protocol](../../guides/function-call.md) guide for usage.
+See the [Function Call Protocol](../../realtime/function-call.md) guide for usage.

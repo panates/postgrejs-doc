@@ -1,5 +1,6 @@
 ---
-sidebar_position: 19
+sidebar_position: 2
+slug: /guides/large-objects
 ---
 
 # Large Objects

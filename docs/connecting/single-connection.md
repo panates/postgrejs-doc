@@ -1,5 +1,6 @@
 ---
 sidebar_position: 3
+slug: /guides/single-connection
 ---
 
 # Single Connection
@@ -150,5 +151,5 @@ for.
 - [Environment Variables](./environment-variables.md)
 - [Connection Pooling](./pooling.md)
 - [Multi-Host & Failover](./multi-host.md)
-- [Resource Management](./resource-management.md)
+- [Resource Management](../reliability/resource-management.md)
 - [API: Connection](../api/classes/connection.md)

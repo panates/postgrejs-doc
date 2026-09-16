@@ -1,5 +1,6 @@
 ---
-sidebar_position: 23
+sidebar_position: 2
+slug: /guides/function-call
 ---
 
 # Function Call Protocol
@@ -13,7 +14,7 @@ to call a function today.
 
 :::note
 If you're not sure whether you need this: you don't. Use `connection.query('select func($1)', { params: [...] })`
-instead — see [Extended Query](./extended-query.md). `callFunction()` exists for the rare case
+instead — see [Extended Query](../querying/extended-query.md). `callFunction()` exists for the rare case
 where you're working at the wire-protocol level directly and specifically need to bypass SQL
 parsing (and, with it, anything SQL resolves for you — collation-dependent functions like `upper()`
 don't work through this protocol, since a raw argument has no expression context to resolve a
@@ -83,7 +84,7 @@ result.result; // null
 | :------------- | :-------------- | :------------------ | :------------------------------------------------------------------------------------------------- |
 | `argFormats`   | `DataFormat[]`  | text for every arg   | Format of each argument, applied positionally — a single entry applies to all arguments, omit for text applied to every one. |
 | `resultFormat` | `DataFormat`    | `DataFormat.text`    | Format the function's return value comes back in.                                                  |
-| `signal`       | `AbortSignal`   |                      | Cancels the call — see [Cancellation & Timeouts](./cancellation.md).                                |
+| `signal`       | `AbortSignal`   |                      | Cancels the call — see [Cancellation & Timeouts](../reliability/cancellation.md).                                |
 
 ## Finding a function's OID
 

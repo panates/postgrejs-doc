@@ -1,5 +1,6 @@
 ---
-sidebar_position: 10
+sidebar_position: 1
+slug: /guides/transactions
 ---
 
 # Transactions & Savepoints

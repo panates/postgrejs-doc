@@ -1,5 +1,6 @@
 ---
-sidebar_position: 8
+sidebar_position: 6
+slug: /guides/cursors
 ---
 
 # Cursors
@@ -82,7 +83,7 @@ await cursor.close();
 }
 ```
 
-See [Resource Management](./resource-management.md) for more on `await using` and disposal in postgrejs.
+See [Resource Management](../reliability/resource-management.md) for more on `await using` and disposal in postgrejs.
 
 ## Why use a cursor
 
@@ -92,4 +93,4 @@ Without `cursor: true`, `query()` returns at most `fetchCount` rows (100 by defa
 
 - [`Cursor`](../api/classes/cursor.md) reference
 - [Extended Query](./extended-query.md)
-- [Resource Management](./resource-management.md)
+- [Resource Management](../reliability/resource-management.md)

@@ -88,7 +88,7 @@ batch.results.map(r => r.rowsAffected); // [1, 1, 0]
 batch.totalRowsAffected;                // 2
 ```
 
-See [Prepared Statements](../../guides/prepared-statements.md#batch-execution) for the full guide, including why this is a separate method rather than an option on `execute()`.
+See [Prepared Statements](../../querying/prepared-statements.md#batch-execution) for the full guide, including why this is a separate method rather than an option on `execute()`.
 
 ### close()
 

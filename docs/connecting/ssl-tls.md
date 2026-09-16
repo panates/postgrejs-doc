@@ -1,5 +1,6 @@
 ---
-sidebar_position: 17
+sidebar_position: 6
+slug: /guides/ssl-tls
 ---
 
 # SSL/TLS & Authentication

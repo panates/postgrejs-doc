@@ -1,5 +1,6 @@
 ---
-sidebar_position: 22
+sidebar_position: 3
+slug: /guides/resource-management
 ---
 
 # Resource Management ("using")
@@ -57,11 +58,11 @@ console.log(result.rows);
 ```
 
 `LargeObject` and `LogicalReplication` do not implement `Symbol.asyncDispose` as of this version — close them
-explicitly with `try`/`finally` (see [Large Objects](./large-objects.md) and
-[Logical Replication](./logical-replication.md)).
+explicitly with `try`/`finally` (see [Large Objects](../bulk-data/large-objects.md) and
+[Logical Replication](../bulk-data/logical-replication.md)).
 
 `await using` also composes with `Pool`-acquired connections: since `connection.close()` on a pooled connection
-releases it back to the pool rather than closing the socket (see [Connection Pooling](./pooling.md#reference-counting)),
+releases it back to the pool rather than closing the socket (see [Connection Pooling](../connecting/pooling.md#reference-counting)),
 the same pattern works unchanged:
 
 ```ts
@@ -80,7 +81,7 @@ pattern works across supported Node versions (`node >= 20.x`) without any extra 
 
 ## See Also
 
-- [Single Connection](./single-connection.md)
-- [Cursors](./cursors.md)
-- [Prepared Statements](./prepared-statements.md)
-- [Large Objects](./large-objects.md)
+- [Single Connection](../connecting/single-connection.md)
+- [Cursors](../querying/cursors.md)
+- [Prepared Statements](../querying/prepared-statements.md)
+- [Large Objects](../bulk-data/large-objects.md)

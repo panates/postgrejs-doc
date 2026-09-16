@@ -1,5 +1,6 @@
 ---
-sidebar_position: 6
+sidebar_position: 2
+slug: /guides/extended-query
 ---
 
 # Extended Query
@@ -136,7 +137,7 @@ The single `Sync` carries the same three consequences as `executeBatch()`:
 
 `fetchCount` doesn't apply and `cursor: true` throws, for the same reason as `executeBatch()`: every statement must run to completion under the shared `Sync`, with no portal left over to fetch from afterward.
 
-This is a different mechanism from [`Pool`'s opt-in pipelining](./pooling.md#pipelining) (`{ pipeline: true }` on `pool.query()`), which lets independent one-shot queries share a connection without waiting on each other but still gives each its own `Sync` — `connection.pipeline()` is what collapses several *known* statements into a single round trip.
+This is a different mechanism from [`Pool`'s opt-in pipelining](../connecting/pooling.md#pipelining) (`{ pipeline: true }` on `pool.query()`), which lets independent one-shot queries share a connection without waiting on each other but still gives each its own `Sync` — `connection.pipeline()` is what collapses several *known* statements into a single round trip.
 
 ## See also
 
@@ -146,4 +147,4 @@ This is a different mechanism from [`Pool`'s opt-in pipelining](./pooling.md#pip
 - [Cursors](./cursors.md)
 - [Custom Row Decoding](./row-decoder.md)
 - [Prepared Statements](./prepared-statements.md), including [Batch Execution](./prepared-statements.md#batch-execution)
-- [Connection Pooling](./pooling.md#pipelining) for `Pool`'s own, different pipelining option
+- [Connection Pooling](../connecting/pooling.md#pipelining) for `Pool`'s own, different pipelining option

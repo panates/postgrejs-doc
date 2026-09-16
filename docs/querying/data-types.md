@@ -1,5 +1,6 @@
 ---
-sidebar_position: 15
+sidebar_position: 4
+slug: /guides/data-types
 ---
 
 # Data Types & Type Mapping

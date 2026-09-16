@@ -35,4 +35,4 @@ const { Connection } = require('postgrejs');
 On older Node 20/22 releases that don't support requiring ESM, import postgrejs from an ESM entry point (e.g. a
 dynamic `import()`, or a project configured with `"type": "module"`).
 
-Next, see [Single Connection](../guides/single-connection.md) to open your first connection.
+Next, see [Single Connection](../connecting/single-connection.md) to open your first connection.

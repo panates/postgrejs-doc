@@ -22,4 +22,4 @@ Extends [ConnectionConfiguration](./database-connection-params.md) and `lightnin
 | maxQueue               | `number`  | 1000    | Maximum number of requests that Pool will accept                                                                                                                                                                                                                                                                                                                                                     |
 | validation             | `boolean` | true    | If true, Pool tests the connection on acquire                                                                                                                                                                                                                                                                                                                                                        |
 
-See the [Connection Pooling](../../guides/pooling.md) guide for usage.
+See the [Connection Pooling](../../connecting/pooling.md) guide for usage.

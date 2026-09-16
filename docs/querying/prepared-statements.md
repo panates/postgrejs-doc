@@ -1,5 +1,6 @@
 ---
-sidebar_position: 9
+sidebar_position: 5
+slug: /guides/prepared-statements
 ---
 
 # Prepared Statements
@@ -136,7 +137,7 @@ Sets that return rows get them decoded into `results[i].rows` exactly as `execut
 included — a plain `UPDATE`/`INSERT` without `RETURNING` leaves `rows` `undefined` rather than an empty
 array.
 
-For a bulk `INSERT` specifically, [`connection.copyFrom()`](./copy.md) is faster still, and a single
+For a bulk `INSERT` specifically, [`connection.copyFrom()`](../bulk-data/copy.md) is faster still, and a single
 `UPDATE ... FROM (VALUES ...)` beats `executeBatch()` for bulk updates of one shape — at the cost of
 PostgreSQL's 65535-parameter ceiling. `executeBatch()` is the general answer when neither of those fits.
 
@@ -209,7 +210,7 @@ async function bulkInsert(connection: Connection, rows: [number, string][]) {
 } // stmt.close() runs automatically here
 ```
 
-See [Resource Management](./resource-management.md) for the broader pattern
+See [Resource Management](../reliability/resource-management.md) for the broader pattern
 across `Connection`, `Cursor`, and other disposable resources, and
 [API: PreparedStatement](../api/classes/prepared-statement.md) for the full
 reference.

@@ -185,7 +185,7 @@ renamed.rowsAffected; // 1
 total.rows?.[0];      // [42]
 ```
 
-See [Extended Query: Multi-Statement Pipelines](../../guides/extended-query.md#multi-statement-pipelines) for the full guide.
+See [Extended Query: Multi-Statement Pipelines](../../querying/extended-query.md#multi-statement-pipelines) for the full guide.
 
 ### copyTo()
 
@@ -258,7 +258,7 @@ const { rowCount } = await connection.copyFromRows('users', [
 ], { columns: ['id', 'name', 'amount'] });
 ```
 
-See [COPY TO / COPY FROM: Loading JS Rows Directly](../../guides/copy.md#loading-js-rows-directly-copyfromrows) for the full guide.
+See [COPY TO / COPY FROM: Loading JS Rows Directly](../../bulk-data/copy.md#loading-js-rows-directly-copyfromrows) for the full guide.
 
 ### prepare()
 
@@ -358,7 +358,7 @@ The legacy Function Call sub-protocol — calls a function by OID directly, bypa
 
 - Returns [FunctionCallResult](../interfaces/function-call-result.md)
 
-See the [Function Call Protocol](../../guides/function-call.md) guide for full examples.
+See the [Function Call Protocol](../../realtime/function-call.md) guide for full examples.
 
 ### startTransaction()
 
@@ -366,7 +366,7 @@ Starts a transaction, or — if one is already open — marks a nested level of
 it. Calls are reference-counted: only the outermost call (the one that
 finds the connection not already in a transaction) actually sends `BEGIN`.
 A matching number of [`commit()`](#commit) calls is then needed to actually
-commit. See [Transactions & Savepoints](../../guides/transactions.md#reference-counting)
+commit. See [Transactions & Savepoints](../../transactions/transactions.md#reference-counting)
 for the full explanation and a worked example.
 
 `startTransaction(): Promise<void>`

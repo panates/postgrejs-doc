@@ -52,4 +52,4 @@ const myTypeMap = new DataTypeMap(GlobalTypeMap);
 myTypeMap.register(myType);
 ```
 
-See [DataTypeMap](../classes/data-type-map.md) and the [Data Types & Type Mapping](../../guides/data-types.md) guide.
+See [DataTypeMap](../classes/data-type-map.md) and the [Data Types & Type Mapping](../../querying/data-types.md) guide.

@@ -1,5 +1,6 @@
 ---
-sidebar_position: 11
+sidebar_position: 2
+slug: /guides/two-phase-commit
 ---
 
 # Two-Phase Commit

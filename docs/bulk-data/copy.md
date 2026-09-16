@@ -1,5 +1,6 @@
 ---
-sidebar_position: 13
+sidebar_position: 1
+slug: /guides/copy
 ---
 
 # COPY TO / COPY FROM

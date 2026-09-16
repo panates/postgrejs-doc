@@ -1,5 +1,6 @@
 ---
 sidebar_position: 4
+slug: /guides/pooling
 ---
 
 # Connection Pooling
@@ -56,10 +57,10 @@ connection around each call:
   lazily on the first `acquire()`/`query()`/`execute()` otherwise.
 - **`query()` / `execute()`** — run a one-off statement (see below).
 - **`prepare(sql, options?)`** — acquires a connection and creates a [`PreparedStatement`](../api/classes/prepared-statement.md)
-  on it; the connection stays checked out until `statement.close()` is called. See [Prepared Statements](./prepared-statements.md).
+  on it; the connection stays checked out until `statement.close()` is called. See [Prepared Statements](../querying/prepared-statements.md).
 - **`listen()` / `unListen()` / `unListenAll()`** — subscribe to `NOTIFY` channels. The pool keeps one dedicated
   connection open for all of its listened channels and reconnects it automatically if it drops, so
-  subscriptions survive independently of any `acquire()`/`release()` cycle. See [Notifications](./notifications.md).
+  subscriptions survive independently of any `acquire()`/`release()` cycle. See [Notifications](../realtime/notifications.md).
 - **`close(terminateWait?)`** — shuts the whole pool down (see [Reference Counting](#reference-counting) below).
 
 ## acquire()/release() vs. query()/execute()
@@ -92,8 +93,8 @@ const result = await pool.query('select * from users where id = $1', {
 const result = await pool.execute('select 1; select 2;');
 ```
 
-These behave like `Connection.query()`/`Connection.execute()` (see [Simple Query](./simple-query.md) and
-[Extended Query](./extended-query.md)) but never leave a connection acquired after the call resolves or rejects.
+These behave like `Connection.query()`/`Connection.execute()` (see [Simple Query](../querying/simple-query.md) and
+[Extended Query](../querying/extended-query.md)) but never leave a connection acquired after the call resolves or rejects.
 
 ## Pool Sizing
 
