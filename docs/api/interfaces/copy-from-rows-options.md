@@ -43,4 +43,4 @@ type CopyRowSource = Iterable<CopyRow> | AsyncIterable<CopyRow> | Readable;
 
 A row is either a positional array (matching `columns`) or an object keyed by column name. The source is pulled from rather than pushed to, so a `Readable`/generator far larger than memory streams in with backpressure being the pull loop pausing rather than a queue growing.
 
-See [COPY TO / COPY FROM: Loading JS Rows Directly](../../bulk-data/copy.md#loading-js-rows-directly-copyfromrows) for the full guide.
+See [COPY TO / COPY FROM: Binary COPY FROM](../../bulk-data/copy.md#binary-copy-from-loading-js-rows-directly-with-copyfromrows) for the full guide.

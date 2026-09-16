@@ -115,11 +115,13 @@ const input = await connection.copyFrom(`COPY users_backup FROM STDIN (FORMAT bi
 await pipeline(Readable.from([Buffer.concat(chunks)]), input);
 ```
 
-## Loading JS Rows Directly: `copyFromRows()`
+## Binary COPY FROM: Loading JS Rows Directly with `copyFromRows()`
 
-`copyFrom()` sends bytes you've already formatted as text, CSV, or binary. `copyFromRows(table, source, options?)`
-does the formatting for you: it encodes each row with the destination columns' own binary encoders and drives
-`COPY ... FROM STDIN (FORMAT binary)` itself, so you never build a text payload at all:
+`copyFrom()` sends whatever bytes you hand it — text, CSV, or binary, however you formatted them yourself.
+`copyFromRows(table, source, options?)` is different in kind, not just more convenient: it *always* speaks
+binary. There is no text/CSV mode. It takes plain JS rows, encodes every value itself with the destination
+columns' own binary encoders, and drives `COPY ... FROM STDIN (FORMAT binary)` on the wire — you hand it
+values, never bytes:
 
 ```ts
 const { rowCount } = await connection.copyFromRows('users', [

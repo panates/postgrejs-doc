@@ -68,7 +68,7 @@ await connection.query('insert into t (a, b) values ($1, $2)', {
 ## Values with no numeric reading
 
 Once a value is actually headed through an `int2`/`int4`/`int8`/`float4`/`float8`/`numeric` encoder —
-typically because its type was pinned with `BindParam`, as [`copyFromRows()`](../bulk-data/copy.md#loading-js-rows-directly-copyfromrows)
+typically because its type was pinned with `BindParam`, as [`copyFromRows()`](../bulk-data/copy.md#binary-copy-from-loading-js-rows-directly-with-copyfromrows)
 does for every column — something that can't be read as a number (`'abc'`, `{}`, `[]`, `true`) throws a
 `TypeError` rather than silently encoding as `0`:
 

@@ -258,7 +258,7 @@ const { rowCount } = await connection.copyFromRows('users', [
 ], { columns: ['id', 'name', 'amount'] });
 ```
 
-See [COPY TO / COPY FROM: Loading JS Rows Directly](../../bulk-data/copy.md#loading-js-rows-directly-copyfromrows) for the full guide.
+See [COPY TO / COPY FROM: Binary COPY FROM](../../bulk-data/copy.md#binary-copy-from-loading-js-rows-directly-with-copyfromrows) for the full guide.
 
 ### prepare()
 
