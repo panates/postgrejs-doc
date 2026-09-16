@@ -48,6 +48,7 @@
 .theme-doc-sidebar-menu.menu__list > .menu__list-item > .menu__link,
 .theme-doc-sidebar-menu.menu__list > .menu__list-item > .menu__list-item-collapsible > .menu__link {
   text-transform: uppercase;
+  font-weight: 700;
 }
 
 .menu__caret,
