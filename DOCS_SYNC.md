@@ -20,8 +20,8 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source commit (short) | `dd22acf` |
 | Source commit date | 2026-09-16T17:16:51+03:00 |
 | Source `package.json` version | 3.4.0 (unreleased additions on top of the tagged 3.4.0 — see CHANGELOG note below) |
-| This repo's commit at sync time | _(fill in after committing this sync)_ |
-| Synced at | _(fill in after committing)_ |
+| This repo's commit at sync time | `50f2a24` |
+| Synced at | 2026-09-16T14:29:25Z |
 | Synced by | Claude Code session — reviewed the diff since `62faa88`. Three new features, all verified against a real server: **automatic prepared-statement caching** for `query()`/`execute()` (new "Automatic Statement Caching" section in `guides/extended-query.md`, `prepare`/`preparedStatementCacheSize` added to `database-connection-params.md`, `prepare` added to `query-options.md`, cross-linked from `prepared-statements.md`); **`Connection.pipeline()`** for many different statements under one `Sync` (new "Multi-Statement Pipelines" section in `extended-query.md`, method added to `api/classes/connection.md`, distinguished explicitly from `Pool`'s unrelated opt-in pipelining); **`copyFromRows()`** for binary-encoded bulk loading from JS rows (new section in `guides/copy.md`, method on `connection.md`, new `api/interfaces/copy-from-rows-options.md`). Also: renamed `DatabaseError.batchIndex` → `failedIndex` in our own docs to match a source rename that landed before the field was ever published; documented a numeric-encoding correctness fix (garbage into an int/numeric parameter now throws instead of silently storing 0) in `query-parameters.md`, including a self-caught inaccuracy in the first draft of that example (plain `{}` doesn't reach the encoder at all without an explicit `BindParam` — PostgreSQL's own type mismatch fires first); synced `getting-started/features.md`'s Prepared Statements/Bulk Import/Query Pipelining bullets and added Multi-statement round trip / Binary COPY encoding rows to the Feature Comparison table, matching the README's own catch-up. No navbar version bump — still v3.4.0. |
 
 **To check what's changed in the source since this was recorded:**
@@ -52,8 +52,8 @@ main documentation.
 | Node run date (from the report itself) | 2026-09-16T14:14:05.530Z |
 | Bun run date (from the report itself) | 2026-09-16T14:14:05.559Z |
 | Library versions in that run | PostgreJS 3.4.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
-| This repo's commit at sync time | _(fill in after committing this sync)_ |
-| Synced at | _(fill in after committing)_ |
+| This repo's commit at sync time | `50f2a24` |
+| Synced at | 2026-09-16T14:29:25Z |
 
 **To check for a newer report:**
 
