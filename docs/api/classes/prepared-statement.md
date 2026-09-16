@@ -73,7 +73,7 @@ Runs the statement once per parameter set, sending every `Bind`/`Execute` before
 | options   | [QueryOptions](../interfaces/query-options.md)   |         | Applied to every set — the same options `execute()` takes, minus `fetchCount` and `cursor`, which a batch cannot honor |
 
 - Returns [BatchResult](../interfaces/batch-result.md)
-- Throws a [DatabaseError](./database-error.md) carrying `batchIndex` (which set was rejected) and `batchResults` (the sets that completed before it), if the server rejects a set
+- Throws a [DatabaseError](./database-error.md) carrying `failedIndex` (which set was rejected) and `batchResults` (the sets that completed before it), if the server rejects a set
 - Throws `TypeError` if `paramSets` isn't an array
 - Throws if `options.cursor` is set — a batch runs every set to completion under one `Sync`, so there's no portal left to fetch from
 

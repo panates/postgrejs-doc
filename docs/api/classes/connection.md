@@ -157,6 +157,36 @@ while ((row = await queryResult.cursor.next())) {
 await connection.close();
 ```
 
+### pipeline()
+
+Runs several different statements in one round trip: every Parse/Bind/Describe/Execute goes out before any response is waited for, and a single Sync closes the lot. The statements share one implicit transaction (unless one is already open), and a rejected statement stops the ones behind it from running — the counterpart to [`PreparedStatement.executeBatch()`](./prepared-statement.md#executebatch), which runs one statement over many parameter sets instead.
+
+`pipeline(requests: (string | QueryRequest | PipelineRequest)[], options?: QueryOptions): Promise<QueryResult[]>`
+
+| Argument | Type                                                    | Default | Description                                                          |
+|----------|-----------------------------------------------------------|---------|--------------------------------------------------------------------------|
+| requests | `(string \| QueryRequest \| PipelineRequest)[]`            |         | Statements to run, as `sql` tag output, plain SQL strings, or `{ sql, params, paramTypes }` objects |
+| options  | [QueryOptions](../interfaces/query-options.md)             |         | Applied to every statement — minus `fetchCount` and `cursor`, which a pipeline cannot honor |
+
+- Returns `Promise<`[`QueryResult`](../interfaces/query-result.md)`[]>` — one entry per statement, in submission order
+- Throws a [DatabaseError](./database-error.md) carrying `failedIndex` (which statement was rejected), if the server rejects one
+- Throws `TypeError` if `requests` isn't an array
+- Throws if `options.cursor` is set — every statement runs to completion under one `Sync`, so there's no portal left to fetch from
+
+```ts
+import { sql } from 'postgrejs';
+
+const [renamed, , total] = await connection.pipeline([
+  sql`update users set name = ${name} where id = ${id}`,
+  sql`insert into audit(msg) values (${msg})`,
+  sql`select count(*)::int as n from users`,
+]);
+renamed.rowsAffected; // 1
+total.rows?.[0];      // [42]
+```
+
+See [Extended Query: Multi-Statement Pipelines](../../guides/extended-query.md#multi-statement-pipelines) for the full guide.
+
 ### copyTo()
 
 Runs a `COPY ... TO STDOUT` statement and returns its output as a stream of the raw bytes the server sends. Resolves as soon as the server accepts the copy, so a large export is never held in memory.
@@ -206,6 +236,29 @@ await pipeline(fs.createReadStream('users.csv'), inp);
 console.log(inp.rowCount);
 await connection.close();
 ```
+
+### copyFromRows()
+
+Loads rows into a table with `COPY ... FROM STDIN (FORMAT binary)`, encoding each value with its destination column's own binary encoder instead of leaving the caller to format a text/CSV payload.
+
+`copyFromRows(table: string, source: CopyRowSource, options?: CopyFromRowsOptions): Promise<CopyFromRowsResult>`
+
+| Argument | Type                | Default | Description                                                                 |
+|----------|----------------------|---------|--------------------------------------------------------------------------------|
+| table    | `string`             |         | Destination table, optionally schema-qualified (`schema.table`)                 |
+| source   | `CopyRowSource`       |         | Rows to load — an `Iterable`/`AsyncIterable` of rows (array or generator), or a `Readable` |
+| options  | [CopyFromRowsOptions](../interfaces/copy-from-rows-options.md) |  | Column list/types, chunk size, and invalid-value handling                      |
+
+- Returns [CopyFromRowsResult](../interfaces/copy-from-rows-options.md#copyfromrowsresult)
+
+```ts
+const { rowCount } = await connection.copyFromRows('users', [
+  [1, 'John', 10.5],
+  [2, 'Jane', 20.0],
+], { columns: ['id', 'name', 'amount'] });
+```
+
+See [COPY TO / COPY FROM: Loading JS Rows Directly](../../guides/copy.md#loading-js-rows-directly-copyfromrows) for the full guide.
 
 ### prepare()
 

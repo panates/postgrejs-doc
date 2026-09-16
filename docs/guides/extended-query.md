@@ -72,6 +72,7 @@ The full option list — `params`, `objectRows`, `rowDecoder`, `columnFormat`, `
 | `autoCommit` | `boolean` | `true` | Whether to run the statement in auto-commit mode. |
 | `cursor` | `boolean` | `false` | Return a [`Cursor`](../api/classes/cursor.md) on `result.cursor` instead of eagerly fetching rows into `result.rows`. |
 | `fetchCount` | `number` | `100` | The hard cap on rows returned in a single round trip — applies whether or not `cursor` is set. Without `cursor: true`, a result set larger than `fetchCount` is silently truncated to `fetchCount` rows, not buffered in full; raise `fetchCount` (or use a cursor) for queries that may return more than 100 rows. |
+| `prepare` | `boolean` | the connection's own setting (`true`) | Overrides the connection's `prepare` setting for this call — see [Automatic Statement Caching](#automatic-statement-caching). |
 | `rowDecoder` | `'array' \| 'object' \| RowDecoder` | `'array'` | How a row's raw wire data becomes a value — see above. |
 | `rollbackOnError` | `boolean` | `true` | Whether an error inside a transaction aborts it or is ignored so the transaction continues. |
 | `utcDates` | `boolean` | `false` | Decode dates/timestamps in UTC instead of system time offset. |
@@ -83,6 +84,60 @@ See [`QueryOptions`](../api/interfaces/query-options.md) for the complete table.
 
 Pass `cursor: true` to get back a [`Cursor`](../api/classes/cursor.md) instead of eagerly buffering every row — essential for large result sets. See [Cursors](./cursors.md).
 
+## Automatic Statement Caching
+
+`query()`/`execute()` reuse a server-side prepared statement for SQL a connection has already run, instead of parsing it again every time — turning a repeated query from `Parse`/`Bind`/`Describe`/`Execute` into `Bind`/`Execute`. This is separate from — and happens underneath — the explicit [`connection.prepare()`](./prepared-statements.md) API; you don't have to opt in, and there's no `PreparedStatement` object to manage.
+
+Nothing is cached the first time a piece of SQL text is seen — a query that only ever runs once costs exactly what it always did. The *second* call with the same SQL text is what gets a server-side name and starts being reused:
+
+```ts
+await connection.query('select * from customers where id = $1', { params: [1] }); // Parse + Bind + Describe + Execute
+await connection.query('select * from customers where id = $1', { params: [2] }); // now prepared: Bind + Execute
+await connection.query('select * from customers where id = $1', { params: [3] }); // Bind + Execute
+```
+
+It's on by default, controlled by `prepare` on [`DatabaseConnectionParams`](../api/interfaces/database-connection-params.md) (per connection) or [`QueryOptions`](../api/interfaces/query-options.md) (per call, overriding the connection's setting):
+
+```ts
+const connection = new Connection({ prepare: false }); // never cache on this connection
+
+await connection.query(sql, { prepare: false }); // skip the cache for just this call
+```
+
+Turn it off when named prepared statements can't survive between calls on the same connection — the main case being **PgBouncer in transaction pooling mode before 1.21**, which hands each transaction a different backend server, so a statement prepared on one is simply missing on the next.
+
+The cache is bounded per connection: `preparedStatementCacheSize` (default `64`) caps how many statements it holds, evicting the least-recently-used one — closing it server-side — once full, so an application that builds SQL text dynamically can't accumulate statements on the server without limit. A cached plan that's invalidated underneath it (e.g. an `ALTER TABLE` between two calls, which PostgreSQL answers with `0A000`, "cached plan must not change result type") is dropped from the cache automatically and the query re-runs unprepared — a schema change against a live connection recovers instead of failing every call from then on.
+
+Scoped to the one-shot path `query()`/`execute()` use outside an explicit transaction; a call inside `startTransaction()`/`commit()` still prepares and closes per call.
+
+## Multi-Statement Pipelines
+
+`connection.pipeline(requests, options?)` runs several *different* statements in one round trip: every `Parse`/`Bind`/`Describe`/`Execute` goes out before any response is waited for, and a single `Sync` closes the lot. It's the counterpart to [`PreparedStatement.executeBatch()`](./prepared-statements.md#batch-execution), which runs one statement over many parameter sets — `pipeline()` runs many different statements once each:
+
+```ts
+import { sql } from 'postgrejs';
+
+const [renamed, , total] = await connection.pipeline([
+  sql`update users set name = ${name} where id = ${id}`,
+  sql`insert into audit(msg) values (${msg})`,
+  sql`select count(*)::int as n from users`,
+]);
+renamed.rowsAffected; // 1
+total.rows?.[0];      // [42]
+```
+
+Statements can be `sql` tag output, plain SQL strings, or `{ sql, params, paramTypes }` objects — mix and match freely in the same array. Results map back to statements by position, decoded the same way `query()` would (`rowDecoder` included).
+
+The single `Sync` carries the same three consequences as `executeBatch()`:
+
+- **One shared transaction.** Unless an explicit transaction is already open, the statements commit or roll back together.
+- **A failing statement stops the rest.** PostgreSQL discards everything between an error and the `Sync`, so statements after a rejected one never run. The thrown [`DatabaseError`](../api/classes/database-error.md) carries `failedIndex`, naming which statement the server actually rejected.
+- **No statement can see another's results.** They're all sent before any reply arrives, so anything conditional on an earlier statement's output belongs in a separate call.
+
+`fetchCount` doesn't apply and `cursor: true` throws, for the same reason as `executeBatch()`: every statement must run to completion under the shared `Sync`, with no portal left over to fetch from afterward.
+
+This is a different mechanism from [`Pool`'s opt-in pipelining](./pooling.md#pipelining) (`{ pipeline: true }` on `pool.query()`), which lets independent one-shot queries share a connection without waiting on each other but still gives each its own `Sync` — `connection.pipeline()` is what collapses several *known* statements into a single round trip.
+
 ## See also
 
 - [`QueryResult`](../api/interfaces/query-result.md), [`QueryOptions`](../api/interfaces/query-options.md) reference
@@ -90,3 +145,5 @@ Pass `cursor: true` to get back a [`Cursor`](../api/classes/cursor.md) instead o
 - [Query Parameters & Type Casting](./query-parameters.md)
 - [Cursors](./cursors.md)
 - [Custom Row Decoding](./row-decoder.md)
+- [Prepared Statements](./prepared-statements.md), including [Batch Execution](./prepared-statements.md#batch-execution)
+- [Connection Pooling](./pooling.md#pipelining) for `Pool`'s own, different pipelining option

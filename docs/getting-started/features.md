@@ -16,7 +16,7 @@ sidebar_position: 2
 
 - **Connection Management** — Supports both single connection and advanced pooling, providing scalability and efficient resource management. See [Single Connection](../guides/single-connection.md) and [Connection Pooling](../guides/pooling.md).
 - **Binary Wire Protocol** — Implements the full binary wire protocol for all PostgreSQL data types, ensuring robust and efficient data handling. See [Data Types & Type Mapping](../guides/data-types.md).
-- **Prepared Statements** — Named prepared statements for optimized query execution. See [Prepared Statements](../guides/prepared-statements.md).
+- **Prepared Statements** — Named prepared statements for optimized query execution, plus a per-connection cache that reuses one automatically for SQL the connection has run before — a repeated query costs `Bind`/`Execute` instead of parsing again, worth 3.2x on fifty concurrent calls. On by default, `prepare: false` to opt out. See [Prepared Statements](../guides/prepared-statements.md) and [Extended Query: Automatic Statement Caching](../guides/extended-query.md#automatic-statement-caching).
 - **Cursors** — Fast double-linked cache cursors for efficient data retrieval. See [Cursors](../guides/cursors.md).
 - **Batch Execution** — `executeBatch()` runs one prepared statement over many parameter sets under a single `Sync`, reporting each set's row count — 1000 updates in 20ms where the same calls pipelined individually take 188ms. See [Prepared Statements](../guides/prepared-statements.md#batch-execution).
 - **Notifications** — High-level implementation for PostgreSQL notifications (LISTEN/NOTIFY), enabling real-time data updates. See [Notifications](../guides/notifications.md).
@@ -25,8 +25,8 @@ sidebar_position: 2
 - **Array Handling** — Supports multidimensional arrays with fast binary encoding/decoding.
 - **Performance Optimization** — Low memory utilization and boosted performance through the use of shared buffers. See [Benchmarks](./benchmarks.md).
 - **Authorization** — Supports various password algorithms including cleartext, MD5, and SASL (SCRAM-SHA-256), ensuring secure authentication. See [SSL/TLS & Authentication](../guides/ssl-tls.md).
-- **Bulk Import/Export** — `COPY TO STDOUT` and `COPY FROM STDIN` as Node streams, with backpressure in both directions. See [COPY TO / COPY FROM](../guides/copy.md).
-- **Query Pipelining** — Pooled queries can share connections so a burst isn't capped by pool size, opt-in per call. See [Connection Pooling](../guides/pooling.md#pipelining).
+- **Bulk Import/Export** — `COPY TO STDOUT` and `COPY FROM STDIN` as Node streams, with backpressure in both directions, plus `copyFromRows()`, which encodes rows straight into binary `COPY` — around 4x faster than the CSV equivalent and no text escaping to get wrong. Takes arrays or objects from anything iterable, so a file larger than memory streams in. See [COPY TO / COPY FROM](../guides/copy.md).
+- **Query Pipelining** — Pooled queries can share connections so a burst isn't capped by pool size, opt-in per call. `pipeline()` goes further for a known set of statements: several different ones travel under a single `Sync`, so they cost one round trip instead of one each and commit or roll back together — around 2x faster than the same calls through `Promise.all()`, which is already pipelined. See [Connection Pooling](../guides/pooling.md#pipelining) and [Extended Query: Multi-Statement Pipelines](../guides/extended-query.md#multi-statement-pipelines).
 - **Dynamic SQL** — A `sql` tag builds statements from composable fragments: values become parameters, names are quoted, and `sql.values()`/`sql.set()` write INSERT and UPDATE clauses from objects. See [The sql Template Tag](../guides/sql-tag.md).
 - **Multiple Hosts** — A connection can list several servers and pick one by role (`targetSessionAttrs`), so a cluster that has failed over is found on the next connect. See [Multi-Host & Failover](../guides/multi-host.md).
 - **Large Objects** — File-like access to binary data stored outside the row: seek, partial reads, streams, for values past what a `bytea` column can hold. See [Large Objects](../guides/large-objects.md).
@@ -73,11 +73,13 @@ How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-
 | ***Querying*** | | | |
 | Query parameters | ✅ | ✅ | ✅ |
 | Parameter type casting | ✅ | 🟡 | ✅ |
-| Prepared statements | ✅ explicit | ✅ | ✅ automatic |
+| Prepared statements | ✅ automatic | ✅ manual | ✅ automatic |
 | Batch execution | ✅ | ❌ | ❌ |
+| Multi-statement round trip | ✅ | ❌ | ❌ |
 | Multi-statement scripts | ✅ | ✅ | ✅ |
 | Server-side cursors | ✅ | 🟡 | ✅ |
 | `COPY TO` / `COPY FROM` | ✅ | 🟡 | ✅ |
+| Binary COPY encoding | ✅ | ❌ | ❌ |
 | Row count after a COPY | ✅ | ✅ | ❌ |
 | ***Transaction management*** | | | |
 | Transaction API | ✅ | ❌ | ✅ |

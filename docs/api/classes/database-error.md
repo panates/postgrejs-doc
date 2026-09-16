@@ -41,7 +41,7 @@ try {
 | lineNr            | `number` | false    | Line number within the SQL script that caused the error (computed client-side from `position`)          |
 | colNr             | `number` | false    | Column number within that line (computed client-side from `position`)                                  |
 | line              | `string` | false    | The text of the offending line itself (computed client-side from `position`)                            |
-| batchIndex        | `number` | false    | Which parameter set [`PreparedStatement.executeBatch()`](./prepared-statement.md#executebatch) was on when the server rejected the batch — only set by that path. Sets after this index never ran |
+| failedIndex        | `number` | false    | Which parameter set [`PreparedStatement.executeBatch()`](./prepared-statement.md#executebatch) was on when the server rejected the batch — only set by that path. Sets after this index never ran |
 | batchResults      | `BatchCommandResult[]` | false | The sets that had already completed when the batch failed, in submission order — only set by `executeBatch()`. They did run, but the batch shares one implicit transaction, so unless an explicit transaction was already open they are rolled back with it |
 
 :::note

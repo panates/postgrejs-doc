@@ -9,6 +9,12 @@ you execute it repeatedly with different parameters. This is the fastest way to
 run the same statement shape many times — for example a bulk insert or update
 loop — because the server skips re-parsing and re-planning on every call.
 
+:::note
+This page covers the *explicit* API: `connection.prepare()` returning a `PreparedStatement` you manage
+yourself. Plain `connection.query()`/`execute()` calls also get this benefit *automatically*, with no
+`PreparedStatement` object involved — see [Extended Query: Automatic Statement Caching](./extended-query.md#automatic-statement-caching).
+:::
+
 ## Preparing a Statement
 
 Call `connection.prepare(sql, options?)` to get a [PreparedStatement](../api/classes/prepared-statement.md)
@@ -108,14 +114,14 @@ That single `Sync` has three consequences, and they're why this is a separate me
   rolls back together — unlike a loop of `execute()` calls, where each one commits on its own.
 - **A failing set stops the rest.** PostgreSQL discards everything between an error and the `Sync`, so sets
   after a rejected one never run. The thrown [`DatabaseError`](../api/classes/database-error.md) gains
-  `batchIndex` (which set was rejected) and `batchResults` (the sets that had already completed):
+  `failedIndex` (which set was rejected) and `batchResults` (the sets that had already completed):
 
   ```ts
   try {
     await stmt.executeBatch([[10], [1], [11]]); // set #1 hits a duplicate key
   } catch (e) {
     e.code;          // '23505'
-    e.batchIndex;     // 1 — set #1 was the one rejected
+    e.failedIndex;     // 1 — set #1 was the one rejected
     e.batchResults;    // results for set #0, which had already run
     // ...but set #0 is rolled back along with everything else, unless an
     // explicit transaction was already open before executeBatch() was called.
