@@ -366,7 +366,7 @@ Starts a transaction, or — if one is already open — marks a nested level of
 it. Calls are reference-counted: only the outermost call (the one that
 finds the connection not already in a transaction) actually sends `BEGIN`.
 A matching number of [`commit()`](#commit) calls is then needed to actually
-commit. See [Transactions & Savepoints](../../transactions/transactions.md#reference-counting)
+commit. See [Transactions & Savepoints](../../transactions/transactions-and-savepoints.md#reference-counting)
 for the full explanation and a worked example.
 
 `startTransaction(): Promise<void>`

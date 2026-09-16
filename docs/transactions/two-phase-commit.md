@@ -78,6 +78,6 @@ expected.
 This full prepare/commit/rollback API is a feature `pg` does not expose at all, and `postgres.js` only partially supports — it has a `sql.prepare(name)` helper for the prepare half, but no equivalent for `COMMIT PREPARED`/`ROLLBACK PREPARED`.
 </small>
 
-See [Transactions](./transactions.md) for ordinary transaction and savepoint
+See [Transactions](./transactions-and-savepoints.md) for ordinary transaction and savepoint
 handling, and [API: Connection](../api/classes/connection.md) for the full
 method reference.
