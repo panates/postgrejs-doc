@@ -16,13 +16,13 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `dd22acfff83dfeb263d9c4c31429eee0e55e18aa` |
-| Source commit (short) | `dd22acf` |
-| Source commit date | 2026-09-16T17:16:51+03:00 |
-| Source `package.json` version | 3.4.0 (unreleased additions on top of the tagged 3.4.0 — see CHANGELOG note below) |
-| This repo's commit at sync time | `50f2a24` |
-| Synced at | 2026-09-16T14:29:25Z |
-| Synced by | Claude Code session — reviewed the diff since `62faa88`. Three new features, all verified against a real server: **automatic prepared-statement caching** for `query()`/`execute()` (new "Automatic Statement Caching" section in `guides/extended-query.md`, `prepare`/`preparedStatementCacheSize` added to `database-connection-params.md`, `prepare` added to `query-options.md`, cross-linked from `prepared-statements.md`); **`Connection.pipeline()`** for many different statements under one `Sync` (new "Multi-Statement Pipelines" section in `extended-query.md`, method added to `api/classes/connection.md`, distinguished explicitly from `Pool`'s unrelated opt-in pipelining); **`copyFromRows()`** for binary-encoded bulk loading from JS rows (new section in `guides/copy.md`, method on `connection.md`, new `api/interfaces/copy-from-rows-options.md`). Also: renamed `DatabaseError.batchIndex` → `failedIndex` in our own docs to match a source rename that landed before the field was ever published; documented a numeric-encoding correctness fix (garbage into an int/numeric parameter now throws instead of silently storing 0) in `query-parameters.md`, including a self-caught inaccuracy in the first draft of that example (plain `{}` doesn't reach the encoder at all without an explicit `BindParam` — PostgreSQL's own type mismatch fires first); synced `getting-started/features.md`'s Prepared Statements/Bulk Import/Query Pipelining bullets and added Multi-statement round trip / Binary COPY encoding rows to the Feature Comparison table, matching the README's own catch-up. No navbar version bump — still v3.4.0. |
+| Source commit | `940caf89f09cc792ddf62615c6972c7c88be6886` |
+| Source commit (short) | `940caf8` |
+| Source commit date | 2026-09-20T12:08:45+03:00 |
+| Source `package.json` version | 3.6.0 |
+| This repo's commit at sync time | `d2a2ace` |
+| Synced at | 2026-09-20T09:32:00Z |
+| Synced by | Claude Code session — reviewed the diff from `dd22acf` (3.4.0) through the 3.5.0 and 3.6.0 releases, two minor versions in one pass. Everything below was verified against a real PostgreSQL 18 server before being written up. **New:** `transaction(fn)` on `Connection`/`Pool` — commits/rolls back a callback, nests as a savepoint when a transaction is already open (new "Scoped Transactions" section in `transactions-and-savepoints.md`, methods on `connection.md`/`pool.md`); `Cursor` is now `AsyncIterable` — `for await` reads a row at a time and closes on exhaustion/break/throw (`cursors.md`, `cursor.md`); `fetchAsString` rewritten from "six hardcoded types, decoded then re-stringified" to a genuine wire-level request for any OID in the server's own text format, with a documented `timestamptz` rendering change and the array-uses-its-own-OID rule (`data-types.md`, `data-mapping-options.md`); `DataType.inferrable` to opt a custom type out of parameter inference (`data-types.md`, `data-type.md`); the prepared-statement cache and `pipeline()` now also serve statements inside an open transaction, with `rollbackOnError`'s savepoint riding the cached statement's own round trip (`extended-query.md`). **Breaking, both confirmed live against a server:** `query()` fetches every row by default instead of silently capping at 100 — `CommandResult.suspended` reports when an explicit `fetchCount` cut a result short (rewrote `extended-query.md`'s option table and "Why use a cursor" in `cursors.md`, updated `command-result.md`/`query-options.md`/`query-result.md`); `fetchAsString`'s `timestamptz` output changed shape (server's own `+00` offset instead of an ISO `Z` string) as a side effect of the wire-level rewrite above. **Fixes:** `LISTEN`/`UNLISTEN` accept any channel name PostgreSQL accepts and case-fold the same way the server does — the old `/^[A-Z]\w+$/i` regex also let a mixed-case channel register under the wrong key, so it silently never delivered anything (`notifications.md`, `connection.md`); `rowsAffected` now set for `MERGE` (`command-result.md`, `batch-result.md`); `float4` decodes as the shortest round-tripping decimal instead of the raw binary64 expansion (`data-types.md`). Re-copied both benchmark reports (new run, library versions unchanged except PostgreJS 3.5.0). Synced `getting-started/features.md`'s bullets and comparison table to match the README's own catch-up (four new bullets, two new comparison rows), and bumped the navbar badge to v3.6.0. |
 
 **To check what's changed in the source since this was recorded:**
 
@@ -48,12 +48,12 @@ main documentation.
 | Field | Value |
 |---|---|
 | Source files | `/Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md` (Node), `doc/BENCHMARKS-bun.md` (Bun) |
-| Source commit at last copy | `dd22acfff83dfeb263d9c4c31429eee0e55e18aa` |
-| Node run date (from the report itself) | 2026-09-16T14:14:05.530Z |
-| Bun run date (from the report itself) | 2026-09-16T14:14:05.559Z |
-| Library versions in that run | PostgreJS 3.4.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
-| This repo's commit at sync time | `50f2a24` |
-| Synced at | 2026-09-16T14:29:25Z |
+| Source commit at last copy | `940caf89f09cc792ddf62615c6972c7c88be6886` |
+| Node run date (from the report itself) | 2026-09-16T18:36:39.004Z |
+| Bun run date (from the report itself) | 2026-09-16T18:36:39.044Z |
+| Library versions in that run | PostgreJS 3.5.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
+| This repo's commit at sync time | `d2a2ace` |
+| Synced at | 2026-09-20T09:32:00Z |
 
 **To check for a newer report:**
 
