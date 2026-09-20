@@ -5,7 +5,7 @@ slug: /guides/data-types
 
 # Data Types & Type Mapping
 
-postgrejs decodes every PostgreSQL wire value into a native JS type through a `DataType` registry keyed by OID (object identifier). The default registry, `GlobalTypeMap`, covers every commonly used scalar and array type out of the box.
+postgrejs decodes every PostgreSQL wire value into a native JS type through a `DataType` registry keyed by OID (object identifier). The default registry, `GlobalTypeMap`, has 125 types registered out of the box — every commonly used scalar and array type, plus the geometric, network, range, interval, bit-string, full-text-search and system-column types. See [Types That Can't Be Decoded](#types-that-cant-be-decoded) for the 47 that aren't.
 
 ## Built-in scalar types
 
