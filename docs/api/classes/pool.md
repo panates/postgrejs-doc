@@ -129,6 +129,30 @@ console.log(result.rows);
 |----------|-----------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | pipeline | `boolean` | `false` | When `true`, lets this one-shot call share an in-flight pooled connection with other pipelined calls instead of acquiring one exclusively — subject to the pool's `pipelineMaxQueries`/`pipelineMaxConnections`. Ignored for statements that start a transaction or a `COPY`, and for `query()` when `cursor: true` is set. |
 
+### transaction()
+
+Acquires a connection, runs `fn` inside a transaction on it via
+[`Connection.transaction()`](./connection.md#transaction), and releases the
+connection back to the pool however that ends. A transaction can't be
+spread across separate `Pool.query()` calls — each is free to land on a
+different connection — so this is how several statements share one.
+
+`transaction<T>(fn: (connection: Connection) => Promise<T>): Promise<T>`
+
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| fn       | `(connection: Connection) => Promise<T>` |  | Run inside the transaction, on the acquired connection. |
+
+```ts
+import { Pool } from 'postgrejs';
+
+const pool = new Pool('postgres://localhost/my_database');
+await pool.transaction(async tx => {
+  await tx.query('insert into orders (total) values ($1)', { params: [total] });
+  await tx.query('update stock set n = n - 1 where sku = $1', { params: [sku] });
+});
+```
+
 ### prepare()
 
 Acquires a connection and creates a [PreparedStatement](./prepared-statement.md) on it. The connection is held until the statement is closed, and is released back to the pool automatically when `statement.close()` is called.

@@ -360,6 +360,37 @@ The legacy Function Call sub-protocol — calls a function by OID directly, bypa
 
 See the [Function Call Protocol](../../realtime/function-call.md) guide for full examples.
 
+### transaction()
+
+Runs `fn` inside a transaction: commits when it returns, rolls back and
+rethrows when it throws. A call made while a transaction is already open
+takes a savepoint instead of a second `BEGIN`, so a nested scope that fails
+rolls back only its own work. See
+[Scoped Transactions](../../transactions/transactions-and-savepoints.md#scoped-transactions-transactionfn)
+for the full explanation.
+
+`transaction<T>(fn: (connection: this) => Promise<T>): Promise<T>`
+
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| fn       | `(connection: this) => Promise<T>` |  | Run inside the transaction (or a savepoint, if nested). Receives this same connection. |
+
+```ts
+import { Connection } from 'postgrejs';
+
+const connection = new Connection('postgres://localhost');
+await connection.connect();
+
+const id = await connection.transaction(async tx => {
+  const r = await tx.query(
+    'insert into orders (total) values ($1) returning id',
+    { params: [199.99] },
+  );
+  await tx.query('update stock set n = n - 1 where sku = $1', { params: ['widget-1'] });
+  return r.rows![0][0];
+});
+```
+
 ### startTransaction()
 
 Starts a transaction, or — if one is already open — marks a nested level of
@@ -514,7 +545,7 @@ Registers the connection as a listener on the given `NOTIFY` channel.
 
 | Argument | Type                    | Default | Description                |
 |----------|--------------------------|---------|---------------------------------|
-| channel  | `string`                 |         | Name of the channel              |
+| channel  | `string`                 |         | Name of the channel — any name PostgreSQL accepts, up to 63 bytes. Folded to lower case the same way an unquoted `LISTEN`/`NOTIFY` identifier would be, so a mixed-case name matches what the server actually delivers — see [Channel name casing](../../realtime/notifications.md#channel-name-casing) |
 | callback | `NotificationCallback`   |         | Listener callback function       |
 
 ```ts

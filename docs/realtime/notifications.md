@@ -33,8 +33,29 @@ without another round trip.
 
 | Argument | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `channel` | `string` | - | Channel name. Must match `/^[A-Z]\w+$/i`. |
+| `channel` | `string` | - | Channel name — any name PostgreSQL accepts, up to 63 bytes. See below for how case is handled. |
 | `callback` | `NotificationCallback` | - | Invoked with the `NotificationMessage` on every matching notification. |
+
+### Channel name casing
+
+A channel name is a PostgreSQL identifier, and `LISTEN foo` and `LISTEN Foo`
+are not the same subscription: an unquoted identifier is folded to lower
+case by the server, so both `LISTEN Foo` and `NOTIFY Foo` really mean
+`foo`. `listen()`/`unListen()` fold a name the same way whenever it looks
+like it could have been written unquoted, so the key your callback is
+registered under and the name the server reports back always match — a
+mixed-case channel used to be accepted but never actually delivered
+anything, since the callback was keyed on the original casing while every
+incoming notification arrived as the folded one:
+
+```ts
+await connection.listen('MyChannel', msg => console.log(msg.payload));
+await connection.query(`NOTIFY MyChannel, 'hi'`); // folds to 'mychannel' too - delivers
+```
+
+A name that could not have been written unquoted (spaces, punctuation) has
+no folding question to answer and is passed through, quoted, exactly as
+given.
 
 To stop receiving notifications:
 

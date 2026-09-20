@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Cursor
 
-A server-side cursor over the rows of a query, obtained by calling `query()`/`prepare()`+`execute()` with `{ cursor: true }` — it is never constructed directly. It implements `AsyncDisposable`, so it can be used with `await using`.
+A server-side cursor over the rows of a query, obtained by calling `query()`/`prepare()`+`execute()` with `{ cursor: true }` — it is never constructed directly. It implements `AsyncDisposable`, so it can be used with `await using`, and `AsyncIterable`, so it can be used with `for await`.
 
 ## Constructor
 
@@ -68,6 +68,20 @@ Closes the cursor and releases its server-side portal.
 
 ```ts
 await cursor.close();
+```
+
+### Symbol.asyncIterator()
+
+Implements `AsyncIterable<Row>`; `for await` reads one row at a time and
+closes the cursor when the loop ends — by exhaustion, `break`, or the body
+throwing.
+
+`[Symbol.asyncIterator](): AsyncIterableIterator<Row>`
+
+```ts
+for await (const row of cursor) {
+  console.log(row);
+}
 ```
 
 ### Symbol.asyncDispose()

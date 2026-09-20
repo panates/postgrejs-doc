@@ -20,7 +20,7 @@ What one parameter set produced — exactly one per set, in the same order the s
 | Key          | Type      | Default | Description                                                                                          |
 |--------------|-----------|---------|----------------------------------------------------------------------------------------------------------|
 | command      | `string`  |         | The command tag PostgreSQL reported for this set (`INSERT`/`UPDATE`/...)                                 |
-| rowsAffected | `number`  |         | Rows affected, for `INSERT`/`UPDATE`/`DELETE` — as in `QueryResult`                                       |
+| rowsAffected | `number`  |         | Rows affected, for `INSERT`/`UPDATE`/`DELETE`/`MERGE` — as in `QueryResult`                                       |
 | rows         | `any[]`   |         | Rows this set returned, decoded the same way `execute()` decodes them (`rowDecoder` included). Only present when the statement actually returns rows — a plain `UPDATE` without `RETURNING` leaves this `undefined` rather than an empty array |
 
 ```ts

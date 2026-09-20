@@ -28,7 +28,7 @@ postgrejs decodes every PostgreSQL wire value into a native JS type through a `D
 | `time` | `string` | |
 | `timestamp` | `Date` | |
 | `timestamptz` | `Date` | |
-| `float4` | `number` | |
+| `float4` | `number` | decoded as the shortest decimal that reads back as the same value — `1.1` comes back `1.1`, not `1.100000023841858` |
 | `float8` | `number` | |
 | `int2` | `number` | |
 | `int4` | `number` | |
@@ -98,6 +98,14 @@ myTypeMap.register(MyEnumType);
 
 A `DataType` descriptor at minimum needs `name`, `oid`, `jsType`, `isType`, and a `decodeText`/`decodeBinary` pair matching the wire format(s) you support; add `encodeText`/`encodeBinary` to also send values of that type as query parameters. Set `elementsOID` to register the type as the array element of another OID.
 
+Set `inferrable: false` when a type's `isType` can genuinely match a plain
+JS value but no caller actually means that type when they pass one —
+PostgreSQL's own single-byte `"char"` is the built-in example: any
+one-character string satisfies its `isType`, but a bare `'A'` parameter is
+never meant as `"char"`, so `determine()` passes it over during inference
+while `"char"` columns still decode normally. Reach the type explicitly
+instead with `new BindParam(oid, value)` when it's genuinely what you want.
+
 ## Per-query type mapping
 
 Both `QueryOptions` and `StatementPrepareOptions` accept a `typeMap` field that overrides `GlobalTypeMap` for a single `query()`/`execute()` call or a single prepared statement, without touching the global registry:
@@ -135,7 +143,7 @@ await connection.query('select id, name from customers', {
 
 ## Fetching as String
 
-Some types lose precision or information when decoded to their native JS type — `numeric` decodes through `parseFloat`, which cannot represent values beyond `number`'s precision, and `date`/`time`/`timestamp`/`timestamptz` collapse Postgres's `infinity`/`-infinity` into JS `Infinity`. Use `fetchAsString` (on `DataMappingOptions`, inherited by `QueryOptions`) to force specific OIDs to decode as their raw string representation instead:
+Some types lose precision or information when decoded to their native JS type — `numeric` decodes through `parseFloat`, which cannot represent values beyond `number`'s precision, and `date`/`time`/`timestamp`/`timestamptz` collapse Postgres's `infinity`/`-infinity` into JS `Infinity`. `fetchAsString` (on `DataMappingOptions`, inherited by `QueryOptions`) asks the server for specific columns in its own text format instead, and hands the bytes back unparsed:
 
 ```ts
 import { DataTypeOIDs } from 'postgrejs';
@@ -149,6 +157,36 @@ const qr = await connection.query(
 );
 console.log(qr.rows[0][0]); // "19.995000" — exact string, not a lossy float
 ```
+
+This is a wire-level request, not a reformatting of the value postgrejs
+would otherwise have decoded — so the string is exactly what PostgreSQL
+itself would print, and it takes **any** OID, not just a handful of
+numeric/date types:
+
+```ts
+const r = await connection.query('select count(*) as n from products', {
+  fetchAsString: [DataTypeOIDs.int8],
+});
+r.rows[0][0]; // '3' — a string, not a decoded int8 (number or BigInt)
+```
+
+An array column is selected by its own array OID (`_timestamptz`, not
+`timestamptz`), and comes back as the whole array literal rather than one
+string per element:
+
+```ts
+await connection.query('select tags from products', {
+  fetchAsString: [DataTypeOIDs._timestamptz],
+});
+```
+
+:::note `timestamptz` as a string follows the session's `TimeZone`
+Because the string is the server's own rendering, a `fetchAsString`'d
+`timestamptz` looks like PostgreSQL's own output (`2020-10-22
+23:45:12.123+00`) rather than an ISO 8601 string — it shifts with the
+session's `TimeZone` setting, same as `select ... ::text` would in `psql`.
+`date`, `time`, `timestamp`, `json`, and `jsonb` render the same either way.
+:::
 
 ## See also
 

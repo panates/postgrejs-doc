@@ -10,4 +10,4 @@ Extends [CommandResult](./command-result.md)
 |--------|-------------------------------|---------|-----------------------------------------------------------|
 | cursor | [`Cursor`](../classes/cursor.md) |         | Cursor instance, present when the query was made with `cursor: true` |
 
-See [CommandResult](./command-result.md) for the fields inherited from it (`command`, `fields`, `rows`, `rowType`, `executeTime`, `rowsAffected`).
+See [CommandResult](./command-result.md) for the fields inherited from it (`command`, `fields`, `rows`, `rowType`, `executeTime`, `suspended`, `rowsAffected`).

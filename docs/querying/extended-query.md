@@ -23,7 +23,7 @@ console.log(result.rows);      // [{ id: 1, given_name: 'Wynne', ... }]
 console.log(result.rowsAffected);
 ```
 
-The result is a [`QueryResult`](../api/interfaces/query-result.md) — it extends [`CommandResult`](../api/interfaces/command-result.md) (`command`, `fields`, `rows`, `rowType`, `executeTime`, `rowsAffected`) and adds an optional `cursor`, present only when `options.cursor` is `true`.
+The result is a [`QueryResult`](../api/interfaces/query-result.md) — it extends [`CommandResult`](../api/interfaces/command-result.md) (`command`, `fields`, `rows`, `rowType`, `executeTime`, `rowsAffected`, `suspended`) and adds an optional `cursor`, present only when `options.cursor` is `true`.
 
 ## Parameters
 
@@ -72,7 +72,7 @@ The full option list — `params`, `objectRows`, `rowDecoder`, `columnFormat`, `
 | --- | --- | --- | --- |
 | `autoCommit` | `boolean` | `true` | Whether to run the statement in auto-commit mode. |
 | `cursor` | `boolean` | `false` | Return a [`Cursor`](../api/classes/cursor.md) on `result.cursor` instead of eagerly fetching rows into `result.rows`. |
-| `fetchCount` | `number` | `100` | The hard cap on rows returned in a single round trip — applies whether or not `cursor` is set. Without `cursor: true`, a result set larger than `fetchCount` is silently truncated to `fetchCount` rows, not buffered in full; raise `fetchCount` (or use a cursor) for queries that may return more than 100 rows. |
+| `fetchCount` | `number` | `0` (unlimited) for `query()`, `100` per batch for a `Cursor` | Maximum rows to fetch — see [below](#fetchcount-and-suspended-results). |
 | `prepare` | `boolean` | the connection's own setting (`true`) | Overrides the connection's `prepare` setting for this call — see [Automatic Statement Caching](#automatic-statement-caching). |
 | `rowDecoder` | `'array' \| 'object' \| RowDecoder` | `'array'` | How a row's raw wire data becomes a value — see above. |
 | `rollbackOnError` | `boolean` | `true` | Whether an error inside a transaction aborts it or is ignored so the transaction continues. |
@@ -80,6 +80,36 @@ The full option list — `params`, `objectRows`, `rowDecoder`, `columnFormat`, `
 | `signal` | `AbortSignal` | — | Cancels the running statement on the server when the signal fires. |
 
 See [`QueryOptions`](../api/interfaces/query-options.md) for the complete table.
+
+### `fetchCount` and suspended results
+
+`query()` fetches every row a statement produces by default — `fetchCount`
+is an explicit limit, not a page size:
+
+```ts
+const r = await connection.query('select i from generate_series(1, 1000) i');
+r.rows.length; // 1000 - every row
+
+const limited = await connection.query(
+  'select i from generate_series(1, 1000) i',
+  { fetchCount: 100 },
+);
+limited.rows.length;  // 100
+limited.suspended;    // true - the server stopped at the limit
+```
+
+`suspended` is set only when an explicit `fetchCount` was given, and it
+means "the limit was reached," not "there are definitely more rows" — a
+result exactly `fetchCount` rows long suspends too, since the server
+doesn't look ahead. There's no way to fetch what's left afterward: the
+portal behind a suspended result is discarded by the `Sync` that ends the
+call. Reach for a [Cursor](./cursors.md) instead when the point is to read
+a large result a piece at a time — there, `fetchCount` is the batch size
+per round trip rather than a cap on the whole result, and still defaults
+to `100`.
+
+`fetchCount: 0` means unlimited, as it does in the protocol — the same as
+omitting it.
 
 ## Cursors
 
@@ -106,6 +136,12 @@ await connection.query(sql, { prepare: false }); // skip the cache for just this
 ```
 
 Turn it off when named prepared statements can't survive between calls on the same connection — the main case being **PgBouncer in transaction pooling mode before 1.21**, which hands each transaction a different backend server, so a statement prepared on one is simply missing on the next.
+
+The cache serves statements inside an open transaction too, not just
+standalone calls — a repeated query costs the same `Bind`/`Execute` there as
+outside one. When [`rollbackOnError`](../transactions/transactions-and-savepoints.md#error-handling-rollbackonerror)
+also applies, a cached statement's `SAVEPOINT`/`RELEASE` pair rides along in
+the same round trip instead of costing one each.
 
 The cache is bounded per connection: `preparedStatementCacheSize` (default `64`) caps how many statements it holds, evicting the least-recently-used one — closing it server-side — once full, so an application that builds SQL text dynamically can't accumulate statements on the server without limit. A cached plan that's invalidated underneath it (e.g. an `ALTER TABLE` between two calls, which PostgreSQL answers with `0A000`, "cached plan must not change result type") is dropped from the cache automatically and the query re-runs unprepared — a schema change against a live connection recovers instead of failing every call from then on.
 
@@ -136,6 +172,11 @@ The single `Sync` carries the same three consequences as `executeBatch()`:
 - **No statement can see another's results.** They're all sent before any reply arrives, so anything conditional on an earlier statement's output belongs in a separate call.
 
 `fetchCount` doesn't apply and `cursor: true` throws, for the same reason as `executeBatch()`: every statement must run to completion under the shared `Sync`, with no portal left over to fetch from afterward.
+
+Statements the connection has already run bind to their cached prepared
+name inside the pipeline too — the same [automatic caching](#automatic-statement-caching)
+that a standalone `query()` gets — so a repeated set of statements sends no
+`Parse` at all the second time through, worth 2.5x on twenty statements.
 
 This is a different mechanism from [`Pool`'s opt-in pipelining](../connecting/pooling.md#pipelining) (`{ pipeline: true }` on `pool.query()`), which lets independent one-shot queries share a connection without waiting on each other but still gives each its own `Sync` — `connection.pipeline()` is what collapses several *known* statements into a single round trip.
 

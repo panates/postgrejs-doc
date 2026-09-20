@@ -36,6 +36,71 @@ try {
 - `connection.inTransaction` is a boolean getter that reflects the connection's
   current transaction status.
 
+## Scoped Transactions: `transaction(fn)`
+
+`transaction(fn)` is the try/catch above written once, as a method: it commits
+when `fn` returns and rolls back and rethrows when it throws.
+
+```ts
+const id = await connection.transaction(async tx => {
+  const r = await tx.query(
+    'insert into orders (total) values ($1) returning id',
+    { params: [199.99] },
+  );
+  await tx.query('update stock set n = n - 1 where sku = $1', {
+    params: ['widget-1'],
+  });
+  return r.rows![0][0];
+});
+```
+
+`fn` is handed the same connection it was called on (`tx` above is
+`connection` itself) — every statement it runs on `tx` is inside the
+transaction, and one run on a different connection is not.
+
+A call made while a transaction is already open takes a savepoint instead of
+a second `BEGIN`, so a nested scope that fails rolls back only its own work
+and leaves the outer transaction standing:
+
+```ts
+await connection.transaction(async tx => {
+  await tx.query('insert into orders (id, total) values (1, 100)');
+  try {
+    await tx.transaction(async inner => {
+      await inner.query('insert into order_items (order_id, sku) values (1, $1)', {
+        params: ['bad-sku'],
+      });
+      throw new Error('validation failed');
+    });
+  } catch {
+    // inner scope rolled back to its own savepoint - order 1 is still there
+  }
+  await tx.query('update orders set status = $1 where id = 1', { params: ['pending'] });
+}); // commits: order 1 and its status update, but not order_items
+```
+
+`Pool` has the same method — it acquires a connection, runs `fn` inside a
+transaction on it, and releases the connection however that ends:
+
+```ts
+import { Pool } from 'postgrejs';
+
+const pool = new Pool();
+await pool.transaction(async tx => {
+  await tx.query('insert into orders (total) values ($1)', { params: [total] });
+  await tx.query('update stock set n = n - 1 where sku = $1', { params: [sku] });
+});
+```
+
+A transaction cannot be spread across separate `pool.query()` calls — each
+one is free to pick a different connection, and a transaction lives on one.
+`pool.transaction(fn)` is how several statements land on the same connection
+without acquiring and releasing it by hand.
+
+Reach for `startTransaction()`/`commit()`/`rollback()` directly instead when
+the transaction's boundaries don't line up with a single function scope —
+for example, one that spans multiple request handlers.
+
 ## Auto-Commit Behavior
 
 Every query normally commits on its own, the same as running it directly in
