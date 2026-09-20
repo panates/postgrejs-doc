@@ -215,20 +215,34 @@ Triggered when an acquired connection is returned to the pool (forwarded from th
 
 ### destroy
 
-Triggered when a connection is destroyed and removed from the pool. Same internal-resource argument as `acquire`.
+Triggered when a connection is destroyed and removed from the pool — an ordinary eviction (idle timeout, `close()`, a failed validation) as much as a connection that died unexpectedly. `reason` is what tells them apart.
 
-`(resource: object) => void`
+`(resource: object, reason?: ConnectionLostError) => void`
+
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| resource | `object` |  | Same internal-resource argument as `acquire` |
+| reason | [`ConnectionLostError`](./connection-lost-error.md) |  | Only set when this connection's socket closed on its own rather than being evicted normally |
 
 ### error
 
-Triggered when the pool fails to create a new connection (e.g. during `acquire()`'s retry loop).
+Two unrelated situations share this event, told apart by their shape:
 
-`(err: Error, info: { requestTime: number; tries: number; maxRetries: number }) => void`
+`(err: Error, info: { requestTime: number; tries: number; maxRetries: number }) => void` — the pool failed to create a new connection (e.g. during `acquire()`'s retry loop).
 
-| Argument | Type     | Default | Description                                              |
-|----------|----------|---------|---------------------------------------------------------------|
-| err      | `Error`  |         | The error that occurred while creating the connection          |
-| info     | `object` |         | `requestTime`, the attempt count so far, and the configured max retries |
+`(err: ConnectionLostError) => void` — a pooled connection died rather than being evicted normally; also reported on [`destroy`](#destroy) as its `reason`. Emitted with no second argument, which is what keeps the two cases unambiguous — check for `info` or `err.code === '08006'`.
+
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| err | `Error \| ConnectionLostError` |  | The connection-creation error, or the reason a pooled connection was lost |
+| info | `object` |  | `requestTime`, the attempt count so far, and the configured max retries — absent for a lost connection |
+
+```ts
+pool.on('error', (err, info) => {
+  if (!info) console.warn('pooled connection lost:', err.processID);
+  else console.error('could not create a connection:', err);
+});
+```
 
 ### debug
 

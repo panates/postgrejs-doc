@@ -602,7 +602,11 @@ Triggered when the connection begins establishing its socket.
 
 Triggered after the connection's socket has closed.
 
-`() => void`
+`(reason?: ConnectionLostError) => void`
+
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| reason | [`ConnectionLostError`](./connection-lost-error.md) |  | Only present when the socket closed on its own — the backend was terminated, a failover, a network fault — rather than because the application called `close()` itself. Whatever query was running at the time rejects with this same object, so a handler that needs both can pair them by identity |
 
 ### terminate
 

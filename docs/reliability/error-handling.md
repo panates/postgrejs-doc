@@ -49,6 +49,39 @@ try {
 }
 ```
 
+## Lost Connections
+
+A connection's socket can close on its own — the backend killed by an administrator, a failover, a
+network fault — as opposed to a `close()` the application itself called. When that happens:
+
+- Whatever call was running on the connection at the time rejects with a
+  [`ConnectionLostError`](../api/classes/connection-lost-error.md) instead of a `DatabaseError`,
+  since the server never got to answer.
+- `Connection`'s [`'close'`](../api/classes/connection.md#close-1) event fires with that same error
+  object as its `reason`.
+- On a `Pool`, the same object is also the `reason` on [`'destroy'`](../api/classes/pool.md#destroy)
+  and is emitted on [`'error'`](../api/classes/pool.md#error) — with no second argument, which is
+  what separates it from the pool's other use of `'error'` (failing to *create* a connection).
+
+`ConnectionLostError.code` is always `'08006'` (`connection_failure`), a value the server itself
+never sends — so branching on `code` reliably tells a lost connection apart from a `DatabaseError`
+without an `instanceof` check, which fails across duplicated copies of the package:
+
+```ts
+try {
+  await connection.query('select pg_sleep(30)');
+} catch (err) {
+  if (err.code === '08006') {
+    console.warn('connection lost mid-query, pid was', err.processID);
+  } else if (err instanceof DatabaseError) {
+    console.error('database error:', err.code);
+  }
+}
+```
+
+A `close()` *you* called still rejects an in-flight call with a plain `Error('Connection closed')`
+— that case carries no `code`, since nothing was actually lost.
+
 ## `asyncErrorHandling`
 
 By default (`asyncErrorHandling: true`), postgrejs captures the caller's stack at the moment `query()`/`execute()` is called and splices it onto any error the call rejects with. Without this, an error thrown deep inside the library's protocol-handling code would only carry an internal async stack frame — useful for debugging the driver itself, but useless for finding which line of *your* application issued the failing query.
@@ -71,4 +104,5 @@ await connection.query('select 1', { asyncErrorHandling: false });
 ## See also
 
 - [API: DatabaseError](../api/classes/database-error.md)
+- [API: ConnectionLostError](../api/classes/connection-lost-error.md)
 - [Cancellation & Timeouts](./cancellation.md)
