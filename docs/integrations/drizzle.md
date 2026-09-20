@@ -73,7 +73,7 @@ and a string was expected. So this driver asks the server directly for `int8`, `
 `FETCH_AS_STRING` — which is exact rather than approximately right, since the string is
 PostgreSQL's own rendering and can't drift from what `pg` would have received.
 
-`unknownTypesAsString` (see [Types That Can't Be Decoded](../querying/data-types.md#types-that-cant-be-decoded))
+`unknownTypesAsString` (see [Enum, Extension, and Other Unregistered Types](../querying/data-types.md#enum-extension-and-other-unregistered-types))
 is on by default for the same reason: a `pgEnum` or other type `postgrejs` has no decoder for would
 otherwise arrive as a raw, unreadable `Buffer`.
 

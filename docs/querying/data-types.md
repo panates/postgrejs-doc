@@ -5,12 +5,12 @@ slug: /guides/data-types
 
 # Data Types & Type Mapping
 
-**125 of PostgreSQL's 172 named type OIDs decode automatically, in both text and binary** — every
-commonly used scalar and array type, plus the geometric, network, range, interval, bit-string,
-full-text-search and system-column types below. The [scalar table](#built-in-scalar-types) just
-below covers the common ones; the rest get their own sections further down.
+**125 PostgreSQL types decode automatically, in both text and binary** — every commonly used
+scalar and array type, plus the geometric, network, range, interval, bit-string, full-text-search
+and system-column types below. The [scalar table](#built-in-scalar-types) just below covers the
+common ones; the rest get their own sections further down.
 
-postgrejs decodes every PostgreSQL wire value into a native JS type through a `DataType` registry keyed by OID (object identifier). See [Types That Can't Be Decoded](#types-that-cant-be-decoded) for the 47 OIDs that aren't registered, and why.
+postgrejs decodes every PostgreSQL wire value into a native JS type through a `DataType` registry keyed by OID (object identifier), and lets you [register your own](#registering-a-custom-type) for anything project-specific — an enum, a composite, an extension type.
 
 ## Built-in scalar types
 
@@ -293,17 +293,10 @@ hands back — its name, nothing more) and `pg_node_tree` (catalog columns like
 None of these seven join parameter-type inference, for the same reason the network types don't —
 name them with [`BindParam`](../api/classes/bind-param.md) when sending one as a parameter.
 
-## Types That Can't Be Decoded
+## Enum, Extension, and Other Unregistered Types
 
-Not every PostgreSQL type can be: the whole `reg*` family (`regclass`, `regtype`, ...) and `money`
-have a binary form that's a bare number and a text form that needs a catalog lookup to produce —
-whichever format a column arrived in, the other would disagree, so there's no single decoding that
-is simply correct. A handful more (`aclitem`, `gtsvector`) have no binary output function at all,
-and a few are pseudo-types or internal statistics blobs that can never actually be a column's type.
-125 of PostgreSQL's 172 named type OIDs are registered; the remaining 47 are named (so
-`fields[i].dataTypeName` still reports `money`/`regclass`/etc.) without being decoded.
-
-A column of one of these arrives as a raw `Buffer` by default — nothing here can interpret it.
+A column whose type isn't registered — an enum, a composite, an extension type, or one of a
+handful of PostgreSQL's own built-ins like `money` — arrives as a raw `Buffer` by default.
 `unknownTypesAsString` asks the server for the column's own text instead, which is what `pg` hands
 back for the same column:
 
