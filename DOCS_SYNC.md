@@ -16,21 +16,21 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `940caf89f09cc792ddf62615c6972c7c88be6886` |
-| Source commit (short) | `940caf8` |
-| Source commit date | 2026-09-20T12:08:45+03:00 |
-| Source `package.json` version | 3.6.0 |
-| This repo's commit at sync time | `d2a2ace` |
-| Synced at | 2026-09-20T09:32:00Z |
-| Synced by | Claude Code session — reviewed the diff from `dd22acf` (3.4.0) through the 3.5.0 and 3.6.0 releases, two minor versions in one pass. Everything below was verified against a real PostgreSQL 18 server before being written up. **New:** `transaction(fn)` on `Connection`/`Pool` — commits/rolls back a callback, nests as a savepoint when a transaction is already open (new "Scoped Transactions" section in `transactions-and-savepoints.md`, methods on `connection.md`/`pool.md`); `Cursor` is now `AsyncIterable` — `for await` reads a row at a time and closes on exhaustion/break/throw (`cursors.md`, `cursor.md`); `fetchAsString` rewritten from "six hardcoded types, decoded then re-stringified" to a genuine wire-level request for any OID in the server's own text format, with a documented `timestamptz` rendering change and the array-uses-its-own-OID rule (`data-types.md`, `data-mapping-options.md`); `DataType.inferrable` to opt a custom type out of parameter inference (`data-types.md`, `data-type.md`); the prepared-statement cache and `pipeline()` now also serve statements inside an open transaction, with `rollbackOnError`'s savepoint riding the cached statement's own round trip (`extended-query.md`). **Breaking, both confirmed live against a server:** `query()` fetches every row by default instead of silently capping at 100 — `CommandResult.suspended` reports when an explicit `fetchCount` cut a result short (rewrote `extended-query.md`'s option table and "Why use a cursor" in `cursors.md`, updated `command-result.md`/`query-options.md`/`query-result.md`); `fetchAsString`'s `timestamptz` output changed shape (server's own `+00` offset instead of an ISO `Z` string) as a side effect of the wire-level rewrite above. **Fixes:** `LISTEN`/`UNLISTEN` accept any channel name PostgreSQL accepts and case-fold the same way the server does — the old `/^[A-Z]\w+$/i` regex also let a mixed-case channel register under the wrong key, so it silently never delivered anything (`notifications.md`, `connection.md`); `rowsAffected` now set for `MERGE` (`command-result.md`, `batch-result.md`); `float4` decodes as the shortest round-tripping decimal instead of the raw binary64 expansion (`data-types.md`). Re-copied both benchmark reports (new run, library versions unchanged except PostgreJS 3.5.0). Synced `getting-started/features.md`'s bullets and comparison table to match the README's own catch-up (four new bullets, two new comparison rows), and bumped the navbar badge to v3.6.0. |
+| Source commit | `35aeca7eb713de61e3e5d63b15b7f4ffbe652410` |
+| Source commit (short) | `35aeca7` |
+| Source commit date | 2026-09-20T22:15:30+03:00 |
+| Source `package.json` version | 3.7.0 |
+| This repo's commit at sync time | `73d8b16` |
+| Synced at | 2026-09-20T19:59:00Z |
+| Synced by | Claude Code session — reviewed the diff from `940caf8` (3.6.0) through 3.6.1 and 3.7.0, a large data-type expansion (56 → 125 registered types). Everything below was verified against a real PostgreSQL 18 server before being written up. **Breaking:** `numeric` now decodes to a `number` only when a double holds it exactly, to a new `Numeric` class otherwise, instead of always going through `parseFloat` and silently rounding — new "Numeric: Exact Decimals" section with a `:::danger` admonition in `data-types.md`, new `api/classes/numeric.md`. **New type coverage:** geometric types decode to their own classes (`Point`/`Circle`/`Box`/`LineSegment`/`Line`/`Path`/`Polygon`) instead of plain objects, which also changes what `JSON.stringify()` produces for them; `interval` decodes to a new `Interval` class; the range/multirange family decodes to a new `Range` class that carries its own OID and round-trips as a parameter without being renamed; `inet`/`cidr`/`macaddr`/`macaddr8`/`bit`/`varbit` decode to strings, `jsonpath`/`tsvector`/`tsquery` to PostgreSQL's own normalized text, and `tid`/`xid`/`xid8`/`cid`/`pg_lsn`/`pg_snapshot`/`txid_snapshot`/`refcursor`/`pg_node_tree` round out the system-column/identifier types (three new `data-types.md` sections, new `api/classes/{geometric-types,interval,range}.md`); `unknownTypesAsString` asks the server for text on the 47 types that still can't be decoded (`money`, the `reg*` family, ...) instead of a raw `Buffer` (`data-mapping-options.md`, new "Types That Can't Be Decoded" section). **Connection loss:** a backend going away (admin kill, failover, network fault) now rejects the in-flight call and fires `Connection`/`Pool` events with a `ConnectionLostError` (`code: '08006'`, carries `processID`) instead of a bare `Error` — new "Lost Connections" section in `error-handling.md`, new `api/classes/connection-lost-error.md`, updated `Connection`'s `'close'` event and `Pool`'s `'destroy'`/`'error'` events. **Fixes:** `stringifyValueForSQL()` now asks `determine()` what type an object is instead of defaulting every object to `::json`, so a `Point`/`Range`/`Interval`/`Date` writes its own correct literal (`stringify-value-for-sql.md`); the prepared-statement cache also recovers from a dropped-and-recreated type invalidating a cached plan (`XX000`), not just a result-type change (`0A000`) (`extended-query.md`). Also bumped the data-type counts and version caption in `features.md`'s comparison table, added three new Features bullets, and bumped the navbar badge to v3.7.0. Benchmark reports unchanged since the last sync (same run, still PostgreJS 3.5.0 in the measured library versions). |
 
 **To check what's changed in the source since this was recorded:**
 
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline dd22acfff83dfeb263d9c4c31429eee0e55e18aa..origin/dev -- src/ README.md CHANGELOG.md
-git diff dd22acfff83dfeb263d9c4c31429eee0e55e18aa..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline 35aeca7eb713de61e3e5d63b15b7f4ffbe652410..origin/dev -- src/ README.md CHANGELOG.md
+git diff 35aeca7eb713de61e3e5d63b15b7f4ffbe652410..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
@@ -48,12 +48,12 @@ main documentation.
 | Field | Value |
 |---|---|
 | Source files | `/Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md` (Node), `doc/BENCHMARKS-bun.md` (Bun) |
-| Source commit at last copy | `940caf89f09cc792ddf62615c6972c7c88be6886` |
+| Source commit at last copy | `35aeca7eb713de61e3e5d63b15b7f4ffbe652410` |
 | Node run date (from the report itself) | 2026-09-16T18:36:39.004Z |
 | Bun run date (from the report itself) | 2026-09-16T18:36:39.044Z |
 | Library versions in that run | PostgreJS 3.5.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
-| This repo's commit at sync time | `d2a2ace` |
-| Synced at | 2026-09-20T09:32:00Z |
+| This repo's commit at sync time | `73d8b16` |
+| Synced at | 2026-09-20T19:59:00Z |
 
 **To check for a newer report:**
 
@@ -70,7 +70,7 @@ fixes looked like each time the report's own HTML layout changed.
 
 ## Navbar version badge
 
-`docusaurus.config.ts`'s navbar has a hardcoded `v3.4.0` badge (linking to npm) — it is **not**
+`docusaurus.config.ts`'s navbar has a hardcoded version badge (currently `v3.7.0`, linking to npm) — it is **not**
 read dynamically from the source repo's `package.json` (that path only exists on this machine,
 not on the Cloudflare Pages build image), so update it by hand alongside the main documentation
 sync whenever the source's version changes.
