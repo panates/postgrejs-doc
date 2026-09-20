@@ -423,6 +423,75 @@
   }
 }
 
+/* ─── Integrations ──────────────────────────────────────────────────────────── */
+
+.integrations {
+  padding: 5rem 0;
+  background: var(--ifm-background-color);
+}
+
+.integrationsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.integrationCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--ifm-transition-fast), transform var(--ifm-transition-fast);
+}
+
+.integrationCard:hover {
+  border-color: var(--ifm-color-primary);
+  color: inherit;
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.integrationLogoWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  margin-bottom: 1.25rem;
+}
+
+.integrationLogo {
+  height: 40px;
+  width: auto;
+  max-width: 160px;
+}
+
+.integrationTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.integrationDesc {
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .integrationsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ─── Quick start ───────────────────────────────────────────────────────────── */
 
 .quickStart {

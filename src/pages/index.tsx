@@ -1,6 +1,7 @@
 import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import CodeBlock from '@theme/CodeBlock';
+import ThemedImage from '@theme/ThemedImage';
 import * as React from 'react';
 
 import styles from './index.module.css';
@@ -139,6 +140,36 @@ const FEATURES = [
   },
 ];
 
+const INTEGRATIONS = [
+  {
+    name: 'SQB',
+    href: '/docs/integrations/sqb',
+    description: "Panates' own multi-dialect ORM and query builder — its PostgreSQL adapter is built directly on postgrejs.",
+    logo: <img src="/img/sqb-logo.svg" alt="SQB" className={styles.integrationLogo} />,
+  },
+  {
+    name: 'Kysely',
+    href: '/docs/integrations/kysely',
+    description: 'A type-safe SQL query builder — run it on postgrejs instead of pg with a drop-in dialect.',
+    logo: <img src="/img/kysely-logo.svg" alt="Kysely" className={styles.integrationLogo} />,
+  },
+  {
+    name: 'Drizzle ORM',
+    href: '/docs/integrations/drizzle',
+    description: 'A lightweight TypeScript ORM — schema, relational queries and migrations on postgrejs.',
+    logo: (
+      <ThemedImage
+        alt="Drizzle ORM"
+        className={styles.integrationLogo}
+        sources={{
+          light: '/img/drizzle-logo-light.svg',
+          dark: '/img/drizzle-logo-dark.svg',
+        }}
+      />
+    ),
+  },
+];
+
 const BEFORE_AFTER = [
   {
     before: 'Parameters get stringified before they’re sent, and results come back as text — every round trip pays a decoding tax.',
@@ -150,7 +181,7 @@ const BEFORE_AFTER = [
   },
   {
     before: 'Binary decoding is often partial — a missing parser for a common type, or an array decoder that only handles a few element types correctly.',
-    after: '56 types encode and decode correctly in both text and binary, verified by a test suite that runs on every push against PostgreSQL 12 through 18.',
+    after: '125 types encode and decode correctly in both text and binary, verified by a test suite that runs on every push against PostgreSQL 12 through 18.',
   },
   {
     before: 'No transaction API, or one without two-phase commit for coordinating a commit across connections.',
@@ -303,6 +334,28 @@ function Comparison() {
   );
 }
 
+function Integrations() {
+  return (
+    <section className={styles.integrations}>
+      <div className="container">
+        <div className={styles.comparisonHeader}>
+          <h2>Works with the ORM you already use</h2>
+          <p>Keep your query builder — swap the driver underneath it for postgrejs.</p>
+        </div>
+        <div className={styles.integrationsGrid}>
+          {INTEGRATIONS.map(i => (
+            <Link key={i.name} to={i.href} className={styles.integrationCard}>
+              <div className={styles.integrationLogoWrap}>{i.logo}</div>
+              <h3 className={styles.integrationTitle}>{i.name}</h3>
+              <p className={styles.integrationDesc}>{i.description}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function QuickStart() {
   return (
     <section className={styles.quickStart}>
@@ -328,6 +381,7 @@ export default function Home(): React.JSX.Element {
         <CodeExample />
         <Features />
         <Comparison />
+        <Integrations />
         <QuickStart />
       </main>
     </Layout>
