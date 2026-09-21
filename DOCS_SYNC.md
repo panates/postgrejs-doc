@@ -16,21 +16,26 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `35aeca7eb713de61e3e5d63b15b7f4ffbe652410` |
-| Source commit (short) | `35aeca7` |
-| Source commit date | 2026-09-20T22:15:30+03:00 |
-| Source `package.json` version | 3.7.0 |
-| This repo's commit at sync time | `73d8b16` |
-| Synced at | 2026-09-20T19:59:00Z |
-| Synced by | Claude Code session — reviewed the diff from `940caf8` (3.6.0) through 3.6.1 and 3.7.0, a large data-type expansion (56 → 125 registered types). Everything below was verified against a real PostgreSQL 18 server before being written up. **Breaking:** `numeric` now decodes to a `number` only when a double holds it exactly, to a new `Numeric` class otherwise, instead of always going through `parseFloat` and silently rounding — new "Numeric: Exact Decimals" section with a `:::danger` admonition in `data-types.md`, new `api/classes/numeric.md`. **New type coverage:** geometric types decode to their own classes (`Point`/`Circle`/`Box`/`LineSegment`/`Line`/`Path`/`Polygon`) instead of plain objects, which also changes what `JSON.stringify()` produces for them; `interval` decodes to a new `Interval` class; the range/multirange family decodes to a new `Range` class that carries its own OID and round-trips as a parameter without being renamed; `inet`/`cidr`/`macaddr`/`macaddr8`/`bit`/`varbit` decode to strings, `jsonpath`/`tsvector`/`tsquery` to PostgreSQL's own normalized text, and `tid`/`xid`/`xid8`/`cid`/`pg_lsn`/`pg_snapshot`/`txid_snapshot`/`refcursor`/`pg_node_tree` round out the system-column/identifier types (three new `data-types.md` sections, new `api/classes/{geometric-types,interval,range}.md`); `unknownTypesAsString` asks the server for text on the 47 types that still can't be decoded (`money`, the `reg*` family, ...) instead of a raw `Buffer` (`data-mapping-options.md`, new "Types That Can't Be Decoded" section). **Connection loss:** a backend going away (admin kill, failover, network fault) now rejects the in-flight call and fires `Connection`/`Pool` events with a `ConnectionLostError` (`code: '08006'`, carries `processID`) instead of a bare `Error` — new "Lost Connections" section in `error-handling.md`, new `api/classes/connection-lost-error.md`, updated `Connection`'s `'close'` event and `Pool`'s `'destroy'`/`'error'` events. **Fixes:** `stringifyValueForSQL()` now asks `determine()` what type an object is instead of defaulting every object to `::json`, so a `Point`/`Range`/`Interval`/`Date` writes its own correct literal (`stringify-value-for-sql.md`); the prepared-statement cache also recovers from a dropped-and-recreated type invalidating a cached plan (`XX000`), not just a result-type change (`0A000`) (`extended-query.md`). Also bumped the data-type counts and version caption in `features.md`'s comparison table, added three new Features bullets, and bumped the navbar badge to v3.7.0. Benchmark reports unchanged since the last sync (same run, still PostgreJS 3.5.0 in the measured library versions). |
+| Source commit | `f5f9d79677622b2ce1b7510f0b3a4dd309f74e74` |
+| Source commit (short) | `f5f9d79` |
+| Source commit date | 2026-09-21T09:30:59+03:00 |
+| Source `package.json` version | 3.8.0 |
+| This repo's commit at sync time | `e35b206` |
+| Synced at | 2026-09-21T06:55:00Z |
+| Synced by | Claude Code session — reviewed the diff from `35aeca7` (3.7.0) through 3.8.0, a small release. Everything below was verified against a real PostgreSQL 18 server before being written up. **New:** `'notice'` event on `Connection`/`Pool` — a `RAISE NOTICE`, or PostgreSQL's own "table does not exist, skipping" from `DROP TABLE IF EXISTS`, now reaches the caller instead of being silently dropped (new "Server Notices" section in `error-handling.md`, events added to `connection.md`/`pool.md`). **Fixes:** a plain `string` or `Date` parameter (and arrays of either) now goes out with no declared type instead of `varchar`/`timestamp`, letting the server resolve it from context — fixes `json`/`jsonb` columns, enum columns, `uuid` comparisons, `coalesce()`, array-typed columns, and `timestamptz` round-tripping across session time zones, all previously refused or silently wrong; costs one thing, a parameter with no context at all (`$1 is null`) now needs a cast or `BindParam` (new "Strings and Dates go out unspecified" section in `query-parameters.md`, noted the `determine()`-bypass in `data-type-map.md`); a binary-encoded array parameter now writes PostgreSQL's own lower bound (`1`) instead of `0`, so `v[1]`/`array_lower(v,1)` agree with a text literal's (noted in `data-types.md`'s Array types section). Also bumped the navbar badge and `features.md`'s comparison caption to v3.8.0, added a Features bullet for notices. Benchmark reports unchanged since the last sync (same run). |
+
+**Style note for future syncs:** avoid an "X of Y total" framing for what postgrejs *doesn't* do
+(e.g. "125 of 172 OIDs registered, 47 aren't, here's why each can't be") — it reads as an apology
+rather than a feature list. State coverage as a positive count and let a "here's the feature that
+covers the rest" pointer (e.g. `unknownTypesAsString`) carry the practical info instead.
 
 **To check what's changed in the source since this was recorded:**
 
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline 35aeca7eb713de61e3e5d63b15b7f4ffbe652410..origin/dev -- src/ README.md CHANGELOG.md
-git diff 35aeca7eb713de61e3e5d63b15b7f4ffbe652410..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline f5f9d79677622b2ce1b7510f0b3a4dd309f74e74..origin/dev -- src/ README.md CHANGELOG.md
+git diff f5f9d79677622b2ce1b7510f0b3a4dd309f74e74..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
