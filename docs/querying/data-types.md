@@ -62,6 +62,11 @@ const qr = await connection.query(
 console.log(qr.rows[0][0]); // [1, 2, 3]
 ```
 
+An array sent as a binary parameter is written with PostgreSQL's own default lower bound (`1`),
+matching a text array literal — `v[1]` is the first element and `array_lower(v, 1)` is `1`, whether
+the row was inserted through a parameter or a literal. `int2vector`/`oidvector` (0-based, matching
+their own catalog columns) are the only exception.
+
 ## Numeric: Exact Decimals
 
 :::danger Breaking change in v3.7.0

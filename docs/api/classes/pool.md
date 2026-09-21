@@ -244,6 +244,22 @@ pool.on('error', (err, info) => {
 });
 ```
 
+### notice
+
+Triggered whenever a pooled connection receives a `NoticeResponse` — a `RAISE NOTICE`, or PostgreSQL's own "table does not exist, skipping" from `DROP TABLE IF EXISTS`. Named with the connection, the same as [`destroy`](#destroy), since a `pool.query()` caller never holds a `Connection` for a notice raised by their own statement to reach otherwise. Like [`debug`](#debug)/[`execute`](#execute-1)/[`query`](#query-1), only forwarded while something is listening on the pool.
+
+`(msg: DatabaseError, connection: Connection) => void`
+
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| msg | [DatabaseError](./database-error.md) |  | The notice, shaped like an error |
+| connection | [Connection](./connection.md) |  | The pooled connection it arrived on |
+
+```ts
+pool.on('notice', (msg, connection) => console.log(msg.severity, msg.message));
+await pool.query('drop table if exists no_such_table'); // logs: NOTICE table "no_such_table" does not exist, skipping
+```
+
 ### debug
 
 Forwarded from any connection acquired after this event already had a listener attached on the pool — see [Connection's `debug` event](./connection.md#debug). Because the forwarding is wired up at `acquire()` time, a listener added after a connection was acquired misses that connection's debug events.

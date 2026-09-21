@@ -49,6 +49,25 @@ try {
 }
 ```
 
+## Server Notices
+
+PostgreSQL sends some messages that aren't errors — a `RAISE NOTICE`, or its own "table does not
+exist, skipping" from `DROP TABLE IF EXISTS`. These never reject the running call or change its
+result; the statement completes normally. They arrive as `'notice'` events, shaped like a
+`DatabaseError` (same `severity`/`message`/`code` fields) but never thrown:
+
+```ts
+connection.on('notice', msg => console.log(msg.severity, msg.message));
+await connection.query('drop table if exists no_such_table');
+// logs: NOTICE table "no_such_table" does not exist, skipping
+// the query above still resolves normally
+```
+
+On a `Pool`, listen with `pool.on('notice', (msg, connection) => ...)` — a `pool.query()` caller
+never holds the `Connection` a notice came from, so it's named the same way `'destroy'` names one
+for a lost connection. See [`Connection`'s `'notice'` event](../api/classes/connection.md#notice)
+and [`Pool`'s](../api/classes/pool.md#notice) for the full reference.
+
 ## Lost Connections
 
 A connection's socket can close on its own — the backend killed by an administrator, a failover, a

@@ -630,6 +630,21 @@ Triggered when an error occurs on an already-established (ready) connection.
 |----------|---------|---------|-----------------|
 | err      | `Error` |         | Error instance  |
 
+### notice
+
+Triggered whenever the server sends a `NoticeResponse` on this connection — a `RAISE NOTICE`, or PostgreSQL's own "table does not exist, skipping" from `DROP TABLE IF EXISTS`. Never rejects the running call or affects its result; the query that triggered it continues normally. Fires while idle too, not just mid-query.
+
+`(msg: DatabaseError) => void`
+
+| Argument | Type                                  | Default | Description             |
+|----------|-----------------------------------------|---------|------------------------------|
+| msg      | [DatabaseError](./database-error.md)   |         | The notice, shaped like an error |
+
+```ts
+connection.on('notice', msg => console.log(msg.severity, msg.message));
+await connection.query('drop table if exists no_such_table'); // logs: NOTICE table "no_such_table" does not exist, skipping
+```
+
 ### notification
 
 Triggered when a notification is received on a channel this connection has `listen()`-ed to.

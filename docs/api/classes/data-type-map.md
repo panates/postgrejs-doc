@@ -53,7 +53,7 @@ Registers one or more data types, keyed by their `oid`. Registering with an OID 
 
 ### determine()
 
-Guesses the PostgreSQL type OID for a plain JS value, by checking registered types (most-recently-registered first) until one claims the value via its `isType()` predicate. Used for query parameters that are not wrapped in a [BindParam](./bind-param.md).
+Guesses the PostgreSQL type OID for a plain JS value, by checking registered types (most-recently-registered first) until one claims the value via its `isType()` predicate. Used for query parameters that are not wrapped in a [BindParam](./bind-param.md) — except a plain `string` or `Date` (or an array of either), which the parameter path sends unspecified rather than asking `determine()` at all; see [Strings and Dates go out unspecified](../../querying/query-parameters.md#strings-and-dates-go-out-unspecified). `determine()` itself is unchanged and still answers `varchar`/`timestamp` for those values when called directly, e.g. from `stringifyValueForSQL()`.
 
 `determine(value: any): OID`
 

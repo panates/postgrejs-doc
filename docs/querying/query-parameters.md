@@ -24,11 +24,54 @@ await connection.query('select * from data_types where f_bool = $1', {
 });
 
 await connection.query('select * from customers where country_code = ANY($1)', {
-  params: [['DE', 'US', 'TR']], // detected as an array type
+  params: [['DE', 'US', 'TR']], // an array of strings — see below, sent unspecified rather than "detected"
 });
 ```
 
 `null` is always sent as `NULL` regardless of position.
+
+## Strings and Dates go out unspecified
+
+Two JS types are the exception to automatic type detection: a plain `string` and a `Date` — and an
+array of either — are sent with **no declared type at all**, as text, for PostgreSQL to resolve
+from whatever the parameter's context calls for. Declaring one is actively wrong for both:
+
+- A string can't say which of PostgreSQL's many text-input types it's meant for. Declaring
+  `varchar` (what `determine()` answers for a bare string) stops the server inferring anything from
+  context — a `json`/`jsonb` column, a `uuid` comparison, an enum column, `coalesce($1, 1)`, and an
+  array-typed column all fail with "expression is of type character varying" if a type is declared.
+- A `Date` is either an instant (`timestamptz`) or a wall clock (`timestamp`) depending only on the
+  column it lands in — no single OID is right for both, and declaring either one moves the value by
+  the client's UTC offset when it lands in the other.
+
+```ts
+await connection.query('insert into settings (value) values ($1)', {
+  params: ['{"a":1}'], // lands in a jsonb column — works, where a declared varchar would not
+});
+
+await connection.query('insert into events (happened_at) values ($1)', {
+  params: [new Date()], // timestamptz stores the instant, timestamp keeps the wall clock — either way, correctly
+});
+```
+
+This is also what `pg` sends for both, and it costs one specific thing: a parameter with **no
+context to resolve a type from** — `$1 is null`, `array_agg($1)`, `concat($1, 1)` — now raises
+`could not determine data type of parameter $1`, exactly as it does under `pg`. A cast (`$1::text`)
+or an explicit `BindParam` (see below) names the type for those:
+
+```ts
+import { BindParam, DataTypeOIDs } from 'postgrejs';
+
+await connection.query('select $1 is null', { params: ['x'] });
+// error: could not determine data type of parameter $1
+
+await connection.query('select $1 is null', {
+  params: [new BindParam(DataTypeOIDs.varchar, 'x')], // works
+});
+```
+
+Numbers, booleans and `Buffer`s are unaffected by any of this — they keep their declared types and
+binary encoding, since those are already right almost everywhere.
 
 ## Overriding the detected type with `BindParam`
 
