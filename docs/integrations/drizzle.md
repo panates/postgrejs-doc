@@ -75,47 +75,13 @@ adds:
 | `prepare` | `postgrejs`'s own | `false` keeps statements out of `postgrejs`'s prepared-statement cache |
 
 The defaults are set so every column reaches Drizzle in the shape its own column mappers were
-written for — see [Why some values are fetched as text](#why-some-values-are-fetched-as-text) below
-— and so PostgreSQL types each parameter from where it lands rather than from the JavaScript
-value's own shape.
-
-## Why some values are fetched as text
-
-Drizzle's column mappers are written against what `pg` hands them — text for most values, since
-`pg` decodes very little on its own. `postgrejs` decodes far more, which is an advantage in
-general and a problem here: its `numeric` would arrive as a `number` that has already lost digits
-before Drizzle's own `numeric` column ever sees it, `timestamp` as a `Date` read in the local zone
-rather than UTC, and `interval`/`time` as an `Interval`/`Date` where Drizzle does nothing to them
-and a string was expected. So this driver asks the server directly for `int8`, `numeric`, `date`,
-`timestamp`, `timestamptz`, `time`, `interval`, `point`, `line` and their array forms via
-[`fetchAsString`](../querying/data-types.md#fetching-as-string) — the list is exported as
-`FETCH_AS_STRING` — which is exact rather than approximately right, since the string is
-PostgreSQL's own rendering and can't drift from what `pg` would have received.
-
-`unknownTypesAsString` (see [Enum, Extension, and Other Unregistered Types](../querying/data-types.md#enum-extension-and-other-unregistered-types))
-is on by default for the same reason: a `pgEnum` or other type `postgrejs` has no decoder for would
-otherwise arrive as a raw, unreadable `Buffer`.
-
-## Why parameter types are left to the server
-
-`postgrejs` infers a parameter's OID from the JS value it's given — a plain string becomes
-`varchar`, which stops PostgreSQL inferring the type from where the parameter lands. That's fatal
-here, not just inconvenient: Drizzle stringifies nearly everything itself before the driver ever
-sees it (`JSON.stringify` for `json`/`jsonb`, `toISOString()` for dates, `String()` for
-`numeric`/`bigint`), so a value declared `varchar` this way fails an ordinary insert with
-`column "x" is of type json but expression is of type character varying`. Strings, numbers,
-booleans, bigints and nulls go out as [`BindParam`](../api/classes/bind-param.md)`(0, value)` — OID
-`0`, "unspecified", the same as `pg` sends — leaving type resolution to context, the way `pg` does.
-A `Date`, `Buffer`, array or plain object keep `postgrejs`'s own typed binary encoder, since their
-JS text form isn't something the server could parse without it.
-
-## Why `rollbackOnError` is off
-
-`postgrejs` wraps each transaction statement in its own savepoint by default (see
-[Error Handling: rollbackOnError](../transactions/transactions-and-savepoints.md#error-handling-rollbackonerror)),
-so a failed statement leaves the transaction usable. That's neither PostgreSQL's own default nor
-what a Drizzle user coming from `pg` expects, so this driver turns it off — a failed statement
-aborts the block, exactly as under `pg`.
+written for, and so PostgreSQL types each parameter from where it lands rather than from the
+JavaScript value's own shape — the same [unspecified-parameter trade strings and Dates pay generally](../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified),
+extended here to numbers, booleans and bigints too, since Drizzle stringifies most values itself
+before the driver ever sees them. See the
+[`drizzle-postgrejs` driver-design notes](https://github.com/panates/postgrejs-drizzle/blob/main/doc/DRIVER-DESIGN.md)
+for the measurement behind each default — which columns need `fetchAsString` and why, and what a
+declared parameter type breaks.
 
 ## What you get
 

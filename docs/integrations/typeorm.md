@@ -40,15 +40,6 @@ export const dataSource = new DataSource({
 package is a drop-in for that default: same members, same values back, different client
 underneath. That's the entire migration.
 
-## Why a facade instead of a driver
-
-TypeORM doesn't take a pluggable dialect the way Kysely and Drizzle do — `DriverFactory` is a
-closed `switch`, and a custom `Driver` class can't be registered at all. The only seam is
-`driver?: any`, so the job isn't "implement TypeORM's interface", it's "be the `pg` module" — and
-that surface has been **18 public members, unchanged since TypeORM 0.2.39** (November 2021) through
-1.1.1 today. The same facade was run against 0.3.31 and 1.1.1 with identical results. A seam that
-small and that still is one you can upgrade TypeORM across without thinking about it.
-
 ## Your reads get faster, and you change nothing to get it
 
 `pg` asks PostgreSQL for everything as text and parses it in JavaScript. `postgrejs` reads the
@@ -123,7 +114,14 @@ await client.query('insert into shapes (p) values ($1)', [rows[0].p]); // writes
 Through `pg` that second call fails with `22P02`: its plain object has no way to render itself
 into a `point` again, so a value you just read isn't a value you can pass on.
 
-## Opting into `postgrejs`'s own richer types
+## One option, and it hasn't moved since 2021
+
+`driver` is TypeORM's own option rather than a plugin API this package invented, and the surface
+behind it is **18 members** — unchanged from TypeORM 0.2.39, November 2021, through 1.1.1 today.
+The same facade was run against 0.3.31 and 1.1.1 with identical results. A seam that small and
+that still is one you can upgrade TypeORM across without thinking about it.
+
+## And `postgrejs`'s own types are one option away
 
 If you know the code reading your rows, take the richer values instead — [`Interval`](../api/classes/interval.md),
 [`Range`](../api/classes/range.md), [`Numeric`](../api/classes/numeric.md), a class per geometric
