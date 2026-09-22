@@ -73,16 +73,32 @@ cursor's batch size instead.
 
 ### Why parameter types are left to the server
 
-A parameter carrying a declared type is one PostgreSQL won't coerce — a string declared `varchar`
-can't go into a `json` column, a number declared `int4` can't be coalesced with a `varchar` column
-or compared against `jsonb`. `pg` sends every parameter as type `0` (unspecified) and lets the
-server resolve each one from where it lands, so this dialect does the same for strings, numbers,
-booleans, bigints and `null`. Dates, buffers, arrays and objects keep `postgrejs`'s own typed
-binary encoders, since their text form isn't something the server could parse without one.
+A parameter carrying a declared type is one PostgreSQL won't coerce. Declare a string `varchar`
+and it can't go into a `json` column; declare a number `int4` and it can't be coalesced with a
+`varchar` column, compared against `jsonb`, or assigned into one:
 
-The cost is the same one [strings and Dates pay generally](../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified):
-a parameter with no context to resolve against settles on `text` rather than raising. Turn it back
-off with `inferParameterTypes: false` to get declared types again.
+```
+COALESCE types character varying and integer cannot be matched
+operator does not exist: jsonb = integer
+subscripted assignment to "data" requires type jsonb but expression is of type double precision
+```
+
+`pg` sends type `0` — unspecified — for everything and lets the server resolve each parameter from
+where it appears, so none of that surfaces there. The dialect does the same for strings, numbers,
+booleans, bigints and `null`s — the same trade [strings and Dates pay generally](../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified).
+Dates, buffers, arrays and objects keep `postgrejs`'s own typed binary encoders, since their text
+form isn't something the server could parse without one.
+
+The cost is a parameter with no context at all — with neither a declared type nor anything to
+resolve against, PostgreSQL settles on `text`:
+
+```ts
+await sql`select ${5} as v`.execute(db); // '5'
+await sql`select ${5} + 1 as v`.execute(db); // 6 — the context decides
+```
+
+That's the trade, and the three errors above are what the other side of it looks like. Turn it
+back off with `inferParameterTypes: false` to get declared types again.
 
 ### Getting `pg`'s bigints
 
@@ -109,7 +125,8 @@ failed statement leaves the transaction usable — not what PostgreSQL does on i
 
 ## Aborting a query
 
-Pass a signal, and choose what happens to the statement already running on the server:
+Pass a signal, and choose what happens to the statement already running on the server — neither
+strategy queues behind the pool:
 
 ```ts
 const controller = new AbortController();
@@ -128,7 +145,8 @@ await db.selectFrom('person').selectAll().execute({
   query, its transaction and its locks go with the backend, and the pool notices the closed
   connection and replaces it.
 
-The default, `'ignore query'`, just stops waiting and leaves the statement running.
+The default, `'ignore query'`, just stops waiting and leaves the statement running — no dialect
+support is involved.
 
 ## Reaching the connection underneath
 
@@ -173,11 +191,26 @@ class PostgrejsSqlConnection extends AbstractSqlConnection {
 Nothing the dialect needs is behind a deep import — `PostgrejsDialect`, `PostgrejsDriver`,
 `PostgrejsConnection` and the config types are all exported from the package root.
 
-## How far it's tested
+## Kysely's own test suite
 
-Kysely holds its dialects to a suite of several hundred tests; this dialect passes all of it against
-Kysely's `pg` dialect checked out at the same version — 684/684 on Kysely v0.29.6, 728/728 on
-v0.30.0-beta.2 — with a weekly CI job re-running both ends of the peer range.
+Kysely holds its dialects to a suite of several hundred tests. A script checks Kysely out at a
+known version, points its `postgres` variant at this dialect instead of the built-in `pg` one, and
+runs all of it — against Kysely v0.29.6: **684 passing, nothing failing**, the same number
+Kysely's own `pg` dialect scores on that checkout, with nothing skipped; against v0.30.0-beta.2,
+the other end of the peer range: **728 passing, nothing failing**. A weekly CI job re-runs both.
+
+Two of those tests name the `pg` driver rather than describe behavior — one asserts the error is
+an instance of `pg`'s `DatabaseError`, one stubs `PostgresDriver.prototype` and expects the stub to
+be called — so the suite patches both to point at this dialect's equivalents; left alone, they'd
+pass over the behavior without exercising it. The suite also runs with
+`fetchAsString: [DataTypeOIDs.int8]`, since every expectation in it is written against `pg`'s
+string bigints.
+
+The suite is also what settled two design questions here: transaction and savepoint commands go
+through `connection.executeQuery` rather than `postgrejs`'s own transaction primitives, because
+that's the seam Kysely wraps its logging around — two dozen tests assert the exact statements a
+transaction runs — and parameter types are left to the server, because a declared type breaks
+every context PostgreSQL would otherwise have inferred (see above).
 
 ## Full documentation
 
