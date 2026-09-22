@@ -168,6 +168,18 @@ const INTEGRATIONS = [
       />
     ),
   },
+  {
+    name: 'TypeORM',
+    description: 'A TypeScript ORM with Active Record and Data Mapper patterns — coming soon on postgrejs.',
+    logo: <img src="/img/typeorm-icon.png" alt="TypeORM" className={styles.integrationLogo} />,
+    comingSoon: true,
+  },
+  {
+    name: 'Prisma',
+    description: 'A next-generation ORM with a typed query builder and schema migrations — coming soon on postgrejs.',
+    logo: <img src="/img/prisma-icon.svg" alt="Prisma" className={styles.integrationLogo} />,
+    comingSoon: true,
+  },
 ];
 
 const BEFORE_AFTER = [
@@ -343,13 +355,25 @@ function Integrations() {
           <p>Keep your query builder — swap the driver underneath it for postgrejs.</p>
         </div>
         <div className={styles.integrationsGrid}>
-          {INTEGRATIONS.map(i => (
-            <Link key={i.name} to={i.href} className={styles.integrationCard}>
-              <div className={styles.integrationLogoWrap}>{i.logo}</div>
-              <h3 className={styles.integrationTitle}>{i.name}</h3>
-              <p className={styles.integrationDesc}>{i.description}</p>
-            </Link>
-          ))}
+          {INTEGRATIONS.map(i => {
+            const content = (
+              <>
+                {i.comingSoon && <span className={styles.integrationBadge}>Coming soon</span>}
+                <div className={styles.integrationLogoWrap}>{i.logo}</div>
+                <h3 className={styles.integrationTitle}>{i.name}</h3>
+                <p className={styles.integrationDesc}>{i.description}</p>
+              </>
+            );
+            return i.comingSoon ? (
+              <div key={i.name} className={`${styles.integrationCard} ${styles.integrationCardSoon}`}>
+                {content}
+              </div>
+            ) : (
+              <Link key={i.name} to={i.href} className={styles.integrationCard}>
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
