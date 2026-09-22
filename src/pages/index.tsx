@@ -170,15 +170,15 @@ const INTEGRATIONS = [
   },
   {
     name: 'TypeORM',
-    description: 'A TypeScript ORM with Active Record and Data Mapper patterns — coming soon on postgrejs.',
+    href: '/docs/integrations/typeorm',
+    description: 'A pg-compatible facade — bring postgrejs to TypeORM by changing one line.',
     logo: <img src="/img/typeorm-icon.png" alt="TypeORM" className={styles.integrationLogo} />,
-    comingSoon: true,
   },
   {
     name: 'Prisma',
-    description: 'A next-generation ORM with a typed query builder and schema migrations — coming soon on postgrejs.',
+    href: '/docs/integrations/prisma',
+    description: 'A driver adapter — run a Prisma schema on postgrejs instead of pg.',
     logo: <img src="/img/prisma-icon.svg" alt="Prisma" className={styles.integrationLogo} />,
-    comingSoon: true,
   },
 ];
 

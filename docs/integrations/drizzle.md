@@ -20,7 +20,7 @@ version the suite is written for, matching the `pg`-backed control run test for 
 npm install drizzle-postgrejs drizzle-orm postgrejs
 ```
 
-`drizzle-orm` (`>=0.44.6 <0.46.0`) and `postgrejs` (`>=3.6.1`) are peer dependencies.
+`drizzle-orm` (`>=0.44.6 <0.46.0`) and `postgrejs` (`>=3.10.1`) are peer dependencies.
 
 ## Usage
 
@@ -124,9 +124,13 @@ for the numbers behind it:
   on matches (`code`, `severity`, `detail`, `hint`, `schema`, `table`, `column`, `constraint`), but
   `position` is a number where `pg` gives a string, `line` means a different thing on each side, and
   `instanceof` against `pg`'s error class doesn't hold.
-- **Ranges decode.** `int4range` and the rest come back as `postgrejs`'s
-  [`Range`](../api/classes/range.md); `pg` gives the text. Drizzle has no range column type, so
-  nothing it owns reads either shape.
+- **Some types decode where `pg` hands back text.** Ranges come back as `postgrejs`'s
+  [`Range`](../api/classes/range.md), `money` as a number rather than `"$12.34"`, and
+  `path`/`polygon`/`circle`/`box`/`lseg` as their own classes. Drizzle has no column for any of
+  these, so nothing it owns reads them either way — they only reach you through a raw
+  `db.execute()`, where the decoded value is usually the more useful one. `point` and `line`, which
+  Drizzle *does* have columns for, are asked for as text (see above) and come out exactly as under
+  `pg`.
 - **`connectionString` is translated** — it's `pg`'s option spelling, not `postgrejs`'s, so this
   driver maps it through rather than letting it fall through to the default `localhost:5432/postgres`.
 
