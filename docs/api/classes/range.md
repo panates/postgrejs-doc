@@ -52,7 +52,8 @@ was asked.
 |:---|:---|:---|
 | `Range.empty<T>(oid?)` | `Range<T>` | Static. The empty range |
 | `toString()` | `string` | As PostgreSQL prints it — casts back through the range's own type |
-| `toJSON()` | `string` | Same as `toString()` |
+| `toPostgres()` | `string` | Same as `toString()` — the `pg`-convention name for "write yourself back" |
+| `toJSON()` | `object` | `{ lower, upper, lowerInclusive, upperInclusive, isEmpty }` |
 
 ## Naming the type: `oid` and `BindParam`
 

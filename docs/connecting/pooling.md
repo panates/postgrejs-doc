@@ -145,6 +145,20 @@ Two pool options govern how far pipelining can fan out:
 
 Setting `pipelineMaxQueries` to `1` restores the older, non-pipelined behavior even when `pipeline: true` is passed.
 
+`pipeline` lives on `QueryOptions`/`ScriptExecuteOptions` now, so it's also a call-level (or
+connection-level) option on a bare `Connection` — where it means the opposite of what it means on
+`Pool`. A `Connection`'s concurrent `query()` calls have always pipelined on their own wire (that's
+what gives a burst on one connection roughly a 6x speedup over running it sequentially); `pipeline:
+false` there is the opt-*out*, claiming the wire so a statement waits for the connection to go idle
+and everything queued behind it waits too. Reach for it when a statement depends on session state
+another one leaves behind — a `SET`, an advisory lock, a temporary table — since nothing orders two
+pipelined statements against each other:
+
+```ts
+await connection.query('set search_path to reporting'); // must land before the next line
+await connection.query('select * from widgets', { pipeline: false });
+```
+
 ## Reference Counting
 
 Each physical connection tracks how many operations are currently running on it (queries, copy streams, prepared

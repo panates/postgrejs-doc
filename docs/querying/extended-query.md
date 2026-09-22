@@ -119,7 +119,7 @@ Pass `cursor: true` to get back a [`Cursor`](../api/classes/cursor.md) instead o
 
 `query()`/`execute()` reuse a server-side prepared statement for SQL a connection has already run, instead of parsing it again every time — turning a repeated query from `Parse`/`Bind`/`Describe`/`Execute` into `Bind`/`Execute`. This is separate from — and happens underneath — the explicit [`connection.prepare()`](./prepared-statements.md) API; you don't have to opt in, and there's no `PreparedStatement` object to manage.
 
-Nothing is cached the first time a piece of SQL text is seen — a query that only ever runs once costs exactly what it always did. The *second* call with the same SQL text is what gets a server-side name and starts being reused:
+Nothing is cached the first time a piece of SQL text is seen — a query that only ever runs once costs exactly what it always did. The *second* call with the same SQL text is what gets a server-side name and starts being reused — including a second call that arrives while the first is still preparing, in a burst: only one of them claims the name, so a burst of the same statement never leaves the others' prepared statements orphaned on the server:
 
 ```ts
 await connection.query('select * from customers where id = $1', { params: [1] }); // Parse + Bind + Describe + Execute
@@ -179,6 +179,13 @@ that a standalone `query()` gets — so a repeated set of statements sends no
 `Parse` at all the second time through, worth 2.5x on twenty statements.
 
 This is a different mechanism from [`Pool`'s opt-in pipelining](../connecting/pooling.md#pipelining) (`{ pipeline: true }` on `pool.query()`), which lets independent one-shot queries share a connection without waiting on each other but still gives each its own `Sync` — `connection.pipeline()` is what collapses several *known* statements into a single round trip.
+
+## Empty Statements
+
+`query('')` — and a statement that's only whitespace or only a comment — returns an ordinary empty
+result (no `command`, no `rows`, no `fields`) instead of throwing. PostgreSQL answers such a
+statement with `EmptyQueryResponse` rather than a `CommandComplete`, which is what `pg` also treats
+as a harmless empty result for the same input.
 
 ## See also
 

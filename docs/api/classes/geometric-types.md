@@ -6,9 +6,10 @@ sidebar_position: 12
 
 `point`, `circle`, `box`, `lseg`, `line`, `path` and `polygon` each decode to their own class —
 `Point`, `Circle`, `Box`, `LineSegment`, `Line`, `Path` and `Polygon` — instead of a plain object.
-Every one of them has a `toString()` that prints exactly what PostgreSQL prints, so casting the
-value back through its own type (`::point`, `::box`, ...) round-trips, and a `toJSON()` that
-returns that same string — `JSON.stringify(point)` gives `"(1,2)"`, not `{"x":1,"y":2}`.
+Every one of them has a `toString()`/`toPostgres()` that prints exactly what PostgreSQL prints, so
+casting the value back through its own type (`::point`, `::box`, ...) round-trips, and a `toJSON()`
+that gives its fields — `JSON.stringify(point)` gives `{"x":1,"y":2}`, and `String(point)` is what
+gives `"(1,2)"`.
 
 ```ts
 import { Connection } from 'postgrejs';
@@ -24,10 +25,10 @@ r.rows[0][1]; // Box { x1: 1, y1: 1, x2: 0, y2: 0 }
 `Box` and `LineSegment` exist as separate classes — not one shared `{x1,y1,x2,y2}` shape — because
 a plain object of those four numbers is otherwise indistinguishable between the two types; the same
 is true of `Path` and `Polygon` over a list of points. A plain object matching a type's own shape
-(`{x,y}` for `Point`, `{x,y,r}` for `Circle`, `{x1,y1,x2,y2}` for `Box`/`LineSegment`, `{a,b,c}` for
-`Line`) is still accepted as a parameter, for code that built one before these classes existed —
-but only for `Point`/`Circle`/`Line`, since `Box` and `LineSegment` share a shape and only the class
-says which one is meant.
+(`{x,y}` for `Point`, `{x,y,radius}` or `{x,y,r}` for `Circle`, `{x1,y1,x2,y2}` for
+`Box`/`LineSegment`, `{a,b,c}` for `Line`) is still accepted as a parameter, for code that built one
+before these classes existed — but only for `Point`/`Circle`/`Line`, since `Box` and `LineSegment`
+share a shape and only the class says which one is meant.
 
 ## Point
 
@@ -44,9 +45,12 @@ says which one is meant.
 |:---|:---|:---|
 | x | `number` | Center |
 | y | `number` | Center |
-| r | `number` | Radius |
+| radius | `number` | Radius — `pg`'s own spelling |
 
-`new Circle(x?, y?, r?)`, all defaulting to `0`.
+`new Circle(x?, y?, radius?)`, all defaulting to `0`. `r` is still there as an accessor onto the
+same number — this class's own name for the radius before v3.10 — but `radius` is the actual
+property: it's what `Object.keys()`/`JSON.stringify()` report, and what a plain-object parameter
+can spell either way.
 
 ## Box
 

@@ -36,6 +36,37 @@ try {
 - `connection.inTransaction` is a boolean getter that reflects the connection's
   current transaction status.
 
+## Transaction Modes
+
+`startTransaction()`, `transaction(fn)` and `Pool.transaction(fn)` all take an optional
+`TransactionOptions` — the isolation level, read-only flag and deferrable flag PostgreSQL takes on
+the `BEGIN` itself:
+
+```ts
+await connection.startTransaction({
+  isolationLevel: 'serializable',
+  readOnly: true,
+});
+// ...
+await connection.commit();
+
+await connection.transaction(async tx => {
+  // ...
+}, { isolationLevel: 'repeatable read' });
+```
+
+| Key | Type | Default | Description |
+|:---|:---|:---|:---|
+| isolationLevel | `'serializable' \| 'repeatable read' \| 'read committed' \| 'read uncommitted'` | the server's `default_transaction_isolation` | What this transaction may see of the ones running beside it |
+| readOnly | `boolean` | `false` | Refuses anything that would write, at the server |
+| deferrable | `boolean` | `false` | Lets a `serializable` `readOnly` transaction wait until it can run without the serialization failures that level otherwise risks — ignored for any other combination |
+
+Setting them this way costs one round trip, where `BEGIN` followed by a separate `SET TRANSACTION`
+costs two. Modes only apply to the call that actually opens the transaction — passing them to a
+nested `startTransaction()`/`transaction()` call, on a transaction that's already open, throws
+rather than silently applying to (or being ignored by) the outer one, since PostgreSQL's own
+behavior there depends on timing in a way nothing here should paper over.
+
 ## Scoped Transactions: `transaction(fn)`
 
 `transaction(fn)` is the try/catch above written once, as a method: it commits

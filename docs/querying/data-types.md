@@ -35,6 +35,7 @@ postgrejs decodes every PostgreSQL wire value into a native JS type through a `D
 | `int2` | `number` | |
 | `int4` | `number` | |
 | `numeric` | `number \| Numeric` | a `number` when a double holds it exactly, a [`Numeric`](#numeric-exact-decimals) when it doesn't |
+| `money` | `number \| Numeric` | same rule as `numeric` — see [Money](#money) for the scale/format question this one adds |
 | `oid` | `number` | |
 | `int8` | `BigInt` | downgraded to `number` automatically when the value fits in `Number.MAX_SAFE_INTEGER` |
 | `json` | `string` \| `object` | parsed with `JSON.parse` unless `fetchAsString` requests the raw text |
@@ -66,6 +67,53 @@ An array sent as a binary parameter is written with PostgreSQL's own default low
 matching a text array literal — `v[1]` is the first element and `array_lower(v, 1)` is `1`, whether
 the row was inserted through a parameter or a literal. `int2vector`/`oidvector` (0-based, matching
 their own catalog columns) are the only exception.
+
+## Temporal Values
+
+`date`, `time`, `timestamp`, `timestamptz` and `interval` normally decode to `Date`/`Interval`.
+`temporalTypes` decodes them into [`Temporal`](https://tc39.es/proposal-temporal/docs/) values
+instead — `Temporal.PlainDate`, `PlainTime`, `PlainDateTime`, `ZonedDateTime` and `Duration`, in
+that order:
+
+```ts
+const r = await connection.query(
+  "select now()::timestamptz t, '12:34:56.789123'::time tm",
+  { temporalTypes: true },
+);
+r.rows[0][0]; // Temporal.ZonedDateTime, in the session's own time zone
+r.rows[0][1]; // Temporal.PlainTime, with all six microsecond digits
+```
+
+`true` takes all five types; an array takes only the ones it names
+(`DataTypeOIDs.date`/`.time`/`.timestamp`/`.timestamptz`/`.interval`). Selecting one brings its array
+and range types along automatically — a `date[]` column and a `daterange` column both follow `date`
+once it's selected, so a row never answers a `Temporal` value for one column and a `Date` for its
+array neighbor. `timeZone` (also on `DataMappingOptions`) sets what zone a `timestamptz` reads as a
+`ZonedDateTime` in — a connection fills it in from the server's own `TimeZone` by default.
+
+Three things a `Date` can't do are why this exists, each the reason one type is on the list: it
+can't hold the microseconds PostgreSQL actually stores (only milliseconds), it can't say a
+`timestamp` has no time zone at all rather than guessing one, and `'0044-03-15'::date` decodes
+correctly as a `PlainDate` where a `Date` puts it in 1944. This is decoding only — every type still
+accepts everything it accepted as a *parameter* before, `Date`s and strings included, so turning
+this on doesn't invalidate code that constructs values the old way.
+
+A value with no `Temporal` equivalent is refused rather than silently rounded: an `interval` mixing
+a sign across its fields (`'1 mon -3 days'` — a `Duration` allows one sign for everything), `time
+'24:00:00'` (a `PlainTime` stops one nanosecond short of it), and a parameter carrying nanoseconds.
+`timetz` stays a string regardless — no `Temporal` type carries a clock time and a fixed offset with
+no date, which is what `timetz` is.
+
+No JS runtime ships `Temporal` yet, so this reads `globalThis.Temporal` when the connection is
+built rather than importing it — install `temporal-polyfill` (or another polyfill) and import it
+*before* connecting:
+
+```ts
+import 'temporal-polyfill/global';
+import { Connection } from 'postgrejs';
+
+const connection = new Connection({ temporalTypes: true });
+```
 
 ## Numeric: Exact Decimals
 
@@ -124,21 +172,26 @@ See [API: Numeric](../api/classes/numeric.md) for the full class reference.
 `point`, `circle`, `box`, `lseg`, `line`, `path` and `polygon` each decode to their own class —
 `Point`, `Circle`, `Box`, `LineSegment`, `Line`, `Path`, `Polygon` — rather than a plain object.
 Every one has a `toString()` that prints exactly what PostgreSQL prints, so it casts back through
-its own type, and a `toJSON()` returning that same string:
+its own type, and a `toJSON()` that gives its fields, the way any other structured value does:
 
 ```ts
 const r = await connection.query('select point(1,2) as p, box(point(0,0),point(1,1)) as b');
 r.rows[0][0];               // Point { x: 1, y: 2 }
 r.rows[0][1];                // Box { x1: 1, y1: 1, x2: 0, y2: 0 } - PostgreSQL normalizes the corners
-JSON.stringify(r.rows[0][0]); // '"(1,2)"' - a string, not '{"x":1,"y":2}'
+JSON.stringify(r.rows[0][0]); // '{"x":1,"y":2}'
+String(r.rows[0][0]);         // '(1,2)' - the literal, from toString()/toPostgres() instead
 ```
+
+`Circle`'s radius is the `radius` field, `pg`'s own spelling — `r`, this client's name for it before
+the class existed, still works as an accessor onto the same number, and a plain `{x, y, r}` object
+is still accepted as a parameter alongside `{x, y, radius}`.
 
 `Box` and `LineSegment` share the same four numbers (`x1,y1,x2,y2`) and exist as separate classes
 only because a plain object of them can't say which type is meant — same for `Path`/`Polygon` over
 a list of points. A parameter can still be a plain object matching the shape (`{x,y}` for `Point`,
-`{x,y,r}` for `Circle`, `{a,b,c}` for `Line`) for code written before these classes existed, but
-`Box`/`LineSegment`/`Path`/`Polygon` need the actual class, since their shapes are ambiguous or
-collide with an array parameter (`point[]`).
+`{x,y,radius}`/`{x,y,r}` for `Circle`, `{a,b,c}` for `Line`) for code written before these classes
+existed, but `Box`/`LineSegment`/`Path`/`Polygon` need the actual class, since their shapes are
+ambiguous or collide with an array parameter (`point[]`).
 
 ```ts
 import { Point, Path } from 'postgrejs';
@@ -162,10 +215,16 @@ holding a calendar and time zone, can resolve against a timestamp.
 const r = await connection.query("select interval '1 year 2 mons 3 days 04:05:06.789' as i");
 const iv = r.rows[0][0];
 iv.years;             // 1
-iv.minutes;            // 0 - every field is always present, never undefined
 String(iv);            // '1 year 2 mons 3 days 04:05:06.789'
 iv.toISOString();      // 'P1Y2M3DT4H5M6.789S'
 ```
+
+Only the fields that actually have a value are present — the wire format stores three quantities,
+and a zero among them isn't a field, so `new Interval({ days: 1, hours: 2 })` has just `days` and
+`hours` and `iv.minutes` is `undefined`, not `0`. `JSON.stringify(iv)` reflects the same fields.
+Reading one back needs to say what an absent field means (`iv.hours ?? 0`); everything this class
+derives — `totalMonths`, `totalMicroseconds`, `toString()`/`toPostgres()`, `toISOString()`, and the
+parameter path — already reads an absent field as the zero it stands for.
 
 ```ts
 import { Interval } from 'postgrejs';
@@ -298,16 +357,57 @@ hands back — its name, nothing more) and `pg_node_tree` (catalog columns like
 None of these seven join parameter-type inference, for the same reason the network types don't —
 name them with [`BindParam`](../api/classes/bind-param.md) when sending one as a parameter.
 
-## Enum, Extension, and Other Unregistered Types
+## Money
 
-A column whose type isn't registered — an enum, a composite, an extension type, or one of a
-handful of PostgreSQL's own built-ins like `money` — arrives as a raw `Buffer` by default.
-`unknownTypesAsString` asks the server for the column's own text instead, which is what `pg` hands
-back for the same column:
+`money` decodes the same way `numeric` does — a `number` when a double holds the value exactly, a
+[`Numeric`](#numeric-exact-decimals) otherwise — since PostgreSQL's `money` is an int64 count of the
+smallest currency unit, and how many of those make one unit (`lc_monetary`) is a server setting the
+wire format doesn't carry:
 
 ```ts
-await connection.query('select balance::money as b'); // Buffer, uninterpretable
-await connection.query('select balance::money as b', { unknownTypesAsString: true }); // '$12.34'
+const r = await connection.query("select '1234.56'::money as m");
+r.rows[0][0]; // 1234.56
+```
+
+A connection asks the server what the scale is the first time it sees a money column, rather than
+at connect (a caller who never touches `money` never asks), and caches the answer —
+`moneyFormat` on `DataMappingOptions` holds it (`{ scale, decimalSeparator }`); set it directly to
+skip that round trip, or to read a value rendered by a different server. Two other ways to read a
+`money` value are covered below: `fetchAsString: [DataTypeOIDs.money]` for the server's own
+locale-formatted text (`'$1,234.56'`, symbol and grouping included), and `decimalAsString` for the
+exact decimal with neither.
+
+## Exact Decimal Strings: `decimalAsString`
+
+`decimalAsString` decodes `numeric` and `money` into the exact decimal string they carry — no
+currency symbol, no thousands separator, no conversion — instead of a `number`/`Numeric`:
+
+```ts
+const r = await connection.query("select '1234.5000'::numeric as n, '12.34'::money as m", {
+  decimalAsString: true,
+});
+r.rows[0]; // ['1234.5000', '12.34'] - exact, scale preserved
+```
+
+`true` takes both types; an array names only the ones it wants (`DataTypeOIDs.numeric`/`.money`).
+Nothing is converted to produce it — both types already build this exact string while decoding and
+only then decide whether a `number` can carry it, so this is cheaper than decoding to a `number` and
+reversing it, and it can't lose precision the way re-parsing an already-lossy `number` would.
+`numeric`'s non-finite values keep PostgreSQL's own spelling (`'NaN'`, `'Infinity'`, `'-Infinity'`)
+rather than becoming JS numbers, since the whole point of the option is that the value stays a
+string. This is different from `fetchAsString: [DataTypeOIDs.numeric]`, which asks the *server* for
+text and gets back whatever `numeric`'s own text representation is — the same string here, but
+`decimalAsString` reads it from the binary the statement was already fetching, with no extra ask.
+
+## Enum, Extension, and Other Unregistered Types
+
+A column whose type isn't registered — an enum, a composite, or an extension type — arrives as a
+raw `Buffer` by default. `unknownTypesAsString` asks the server for the column's own text instead,
+which is what `pg` hands back for the same column:
+
+```ts
+await connection.query('select status::order_status as s'); // Buffer, uninterpretable
+await connection.query('select status::order_status as s', { unknownTypesAsString: true }); // 'shipped'
 ```
 
 It's off by default, and not free: the column types have to be known before the `Bind` that asks
@@ -382,6 +482,21 @@ const qr = await connection.query('select * from widgets', {
 });
 ```
 
+`typeMap`, along with every other data-mapping option covered on this page — `objectRows`,
+`rowDecoder`, `columnFormat`, `utcDates`, `fetchAsString`, `unknownTypesAsString`, `decimalAsString`,
+`temporalTypes`, `moneyFormat` — can also be set once on the connection, instead of repeated on
+every call, and a value given on a specific call still wins over it:
+
+```ts
+const connection = new Connection({
+  typeMap: customMap,
+  objectRows: true,
+});
+
+await connection.query('select * from widgets'); // uses the connection's typeMap and objectRows
+await connection.query('select * from widgets', { objectRows: false }); // this call's own wins
+```
+
 ## Text vs Binary Wire Format
 
 PostgreSQL's wire protocol can transfer column values as `text` or `binary`. postgrejs defaults every column to `binary` (`DataFormat.binary`, per `DEFAULT_COLUMN_FORMAT` in the library's constants) since it avoids the cost of formatting/parsing decimal text for every row.
@@ -431,14 +546,26 @@ const r = await connection.query('select count(*) as n from products', {
 r.rows[0][0]; // '3' — a string, not a decoded int8 (number or BigInt)
 ```
 
-An array column is selected by its own array OID (`_timestamptz`, not
-`timestamptz`), and comes back as the whole array literal rather than one
-string per element:
+Naming an array-typed column reaches it two different ways, depending on which OID is named. The
+scalar's own OID (`timestamptz`) asks for the *elements*, still in an array — the server's own text
+for each one, nulls left as `null` rather than the string `'NULL'`, the array's own separator
+honored, a multidimensional column keeping its shape:
+
+```ts
+await connection.query('select tags from products', {
+  fetchAsString: [DataTypeOIDs.timestamptz],
+});
+r.rows[0][0]; // ['2020-10-22 23:45:12.123+00', null, '2021-01-01 00:00:00+00']
+```
+
+The array's own OID (`_timestamptz`) asks for the *whole column* as one string — the array literal
+exactly as PostgreSQL would print it:
 
 ```ts
 await connection.query('select tags from products', {
   fetchAsString: [DataTypeOIDs._timestamptz],
 });
+r.rows[0][0]; // '{"2020-10-22 23:45:12.123+00",NULL,"2021-01-01 00:00:00+00"}'
 ```
 
 :::note `timestamptz` as a string follows the session's `TimeZone`
@@ -448,6 +575,23 @@ Because the string is the server's own rendering, a `fetchAsString`'d
 session's `TimeZone` setting, same as `select ... ::text` would in `psql`.
 `date`, `time`, `timestamp`, `json`, and `jsonb` render the same either way.
 :::
+
+### Scoping to just the scalar: `{ oid, arrays: false }`
+
+A bare OID asks for a type and every column of arrays of it together — naming `numeric` reaches
+`numeric` columns and `numeric[]` columns alike. An entry can be `{ oid, arrays: false }` instead,
+to narrow that to the scalar columns only:
+
+```ts
+await connection.query('select price, prices from products', {
+  fetchAsString: [{ oid: DataTypeOIDs.numeric, arrays: false }],
+});
+r.rows[0]; // ['19.995000', [1.5, 2.5]] - the scalar as a string, the array still decoded numbers
+```
+
+This is the shape `pg` gives `numeric`: a scalar column as a string and a `numeric[]` column as
+numbers. Naming the bare OID would turn both into strings; naming `arrays: false` reproduces the
+pair.
 
 ## See also
 

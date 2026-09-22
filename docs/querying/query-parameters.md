@@ -30,11 +30,12 @@ await connection.query('select * from customers where country_code = ANY($1)', {
 
 `null` is always sent as `NULL` regardless of position.
 
-## Strings and Dates go out unspecified
+## Strings, Dates, and numeric arrays go out unspecified
 
-Two JS types are the exception to automatic type detection: a plain `string` and a `Date` — and an
-array of either — are sent with **no declared type at all**, as text, for PostgreSQL to resolve
-from whatever the parameter's context calls for. Declaring one is actively wrong for both:
+Three shapes are the exception to automatic type detection: a plain `string`, a `Date`, and an
+array of numbers or `bigint`s (nested arrays included) — and an array of a string or a `Date` —
+are sent with **no declared type at all**, as text, for PostgreSQL to resolve from whatever the
+parameter's context calls for. Declaring one is actively wrong for all three:
 
 - A string can't say which of PostgreSQL's many text-input types it's meant for. Declaring
   `varchar` (what `determine()` answers for a bare string) stops the server inferring anything from
@@ -43,6 +44,11 @@ from whatever the parameter's context calls for. Declaring one is actively wrong
 - A `Date` is either an instant (`timestamptz`) or a wall clock (`timestamp`) depending only on the
   column it lands in — no single OID is right for both, and declaring either one moves the value by
   the client's UTC offset when it lands in the other.
+- `[1, 2]` is `int2[]`, `int4[]`, `int8[]`, `numeric[]`, `float4[]` or `float8[]` depending on where
+  it lands, and unlike their scalars those array types have **no operators or implicit casts
+  between them** — a declared `int4[]` sent to an `int8[]` column fails outright
+  (`42883 operator does not exist: bigint[] = integer[]`), it isn't merely imprecise the way a
+  scalar guess would be.
 
 ```ts
 await connection.query('insert into settings (value) values ($1)', {
@@ -52,7 +58,16 @@ await connection.query('insert into settings (value) values ($1)', {
 await connection.query('insert into events (happened_at) values ($1)', {
   params: [new Date()], // timestamptz stores the instant, timestamp keeps the wall clock — either way, correctly
 });
+
+await connection.query('select array[1,2]::int8[] = $1', {
+  params: [[1, 2]], // resolves against int8[] here, and just as correctly against numeric[] elsewhere
+});
 ```
+
+A scalar number, a boolean, a `Buffer`, and an array of anything else (booleans, `Buffer`s, this
+client's own value classes) keep their declared type and binary encoding — each of those has only
+one type it could be, so declaring it isn't a guess and keeps what a text literal gives up. An empty
+array is untouched too: `determine()` still answers `unknown` for it, same as before.
 
 This is also what `pg` sends for both, and it costs one specific thing: a parameter with **no
 context to resolve a type from** — `$1 is null`, `array_agg($1)`, `concat($1, 1)` — now raises

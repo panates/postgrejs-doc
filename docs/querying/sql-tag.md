@@ -79,18 +79,25 @@ As with `sql.values()`, pass `columns` to restrict what gets written when `data`
 
 ## `QueryRequest.stringify(options?)`
 
-Renders the statement as plain SQL text with every parameter written in as a properly encoded, explicitly cast literal — for cases where you need a literal string rather than a parameterized call, such as passing it to [`execute()`](./simple-query.md), which has no `params` option:
+Renders the statement as plain SQL text with every parameter written in as a literal — for cases where you need a literal string rather than a parameterized call, such as passing it to [`execute()`](./simple-query.md), which has no `params` option:
 
 ```ts
 sql`select ${42}`.stringify();          // "select '42'::int4"
 sql`select ${true}`.stringify();        // "select 't'::bool"
 sql`select ${null}`.stringify();        // "select null"
-sql`select ${[1, 2]}`.stringify();      // "select ARRAY['1','2']::_int4"
+sql`select ${'hi'}`.stringify();        // "select 'hi'"
+sql`select ${[1, 2]}`.stringify();      // "select '{"1","2"}'"
 
 await connection.execute(sql`select * from accounts where id = ${accountId}`);
 ```
 
-Each value is encoded through the same type map `query()` uses, so both paths agree on how a value is represented. A value with no text encoding (e.g. an unregistered type) makes `stringify()` throw rather than silently guess — use `query()` instead for values like that.
+Most values get an explicit cast — `'42'::int4`, `'t'::bool` — encoded through the same type map
+`query()` uses, so the two paths agree on how a value is represented. A `string`, a `Date`, and an
+array of numbers/`bigint`s/strings/`Date`s are the exception: like their parameter forms (see
+[Strings, Dates, and numeric arrays go out unspecified](./query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified)),
+they're written bare, with no cast, so the same statement resolves them from context whichever way
+it runs. A value with no text encoding at all (e.g. an unregistered type) makes `stringify()` throw
+rather than silently guess — use `query()` instead for values like that.
 
 `sql.ident()` results contain no parameters, so `stringify()` on an identifier fragment just returns the quoted name unchanged.
 

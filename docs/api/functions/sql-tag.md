@@ -86,6 +86,6 @@ The object returned by `sql`, `sql.ident()`, `sql.values()` and `sql.set()`.
 
 Returns: `string`
 
-Writes the request's values in as literals, for use with the Simple Query protocol (`connection.execute()`), which carries no out-of-band parameters. Every value is encoded by its own data type and given an explicit cast; a value whose type has no text encoding throws rather than falling back to a generic conversion. Parameters (via `query()`) are safe by construction — literals are only as safe as the encoder, which is why `stringify()` refuses to guess instead of producing something that looks plausible.
+Writes the request's values in as literals, for use with the Simple Query protocol (`connection.execute()`), which carries no out-of-band parameters. Most values are encoded by their own data type and given an explicit cast (`'42'::int4`); a `string`, a `Date`, and an array of numbers/`bigint`s/strings/`Date`s are written bare instead, the same as they are as parameters — see [Strings, Dates, and numeric arrays go out unspecified](../../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified). A value whose type has no text encoding at all throws rather than falling back to a generic conversion. Parameters (via `query()`) are safe by construction — literals are only as safe as the encoder, which is why `stringify()` refuses to guess instead of producing something that looks plausible.
 
 See the [The sql Template Tag](../../querying/sql-tag.md) guide for a fuller walkthrough.

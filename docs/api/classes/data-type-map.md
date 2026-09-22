@@ -53,7 +53,7 @@ Registers one or more data types, keyed by their `oid`. Registering with an OID 
 
 ### determine()
 
-Guesses the PostgreSQL type OID for a plain JS value, by checking registered types (most-recently-registered first) until one claims the value via its `isType()` predicate. Used for query parameters that are not wrapped in a [BindParam](./bind-param.md) — except a plain `string` or `Date` (or an array of either), which the parameter path sends unspecified rather than asking `determine()` at all; see [Strings and Dates go out unspecified](../../querying/query-parameters.md#strings-and-dates-go-out-unspecified). `determine()` itself is unchanged and still answers `varchar`/`timestamp` for those values when called directly, e.g. from `stringifyValueForSQL()`.
+Guesses the PostgreSQL type OID for a plain JS value, by checking registered types (most-recently-registered first) until one claims the value via its `isType()` predicate. Used for query parameters that are not wrapped in a [BindParam](./bind-param.md) — except a plain `string`, a `Date`, or an array of numbers/`bigint`s/strings/`Date`s, which both the parameter path and `stringifyValueForSQL()`'s literal path send unspecified (as text) rather than asking `determine()` at all; see [Strings, Dates, and numeric arrays go out unspecified](../../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified). `determine(value)` called directly is unaffected by any of this and still answers `varchar`/`timestamp`/`_int4` for those same values — `GlobalTypeMap.determine([1, 2])` is still `DataTypeOIDs._int4` — since the bypass lives in the two call sites, not in `determine()` itself.
 
 `determine(value: any): OID`
 

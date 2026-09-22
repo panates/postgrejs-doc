@@ -11,11 +11,12 @@ each is constructed.
 
 ## TCP connection strings
 
-Use the `postgres://` or `pg://` scheme (accepted identically; if no scheme is given at all, `postgres://` is
-assumed):
+Use the `postgres://`, `postgresql://` or `pg://` scheme (accepted identically; if no scheme is
+given at all, `postgres://` is assumed):
 
 ```
 postgres://user:password@host:port/database?param=value
+postgresql://user:password@host:port/database?param=value
 pg://user:password@host:port/database?param=value
 ```
 
@@ -62,6 +63,41 @@ parameters actually do.
 
 If no connection string or config is given at all, postgrejs falls back to the standard `PG*` environment
 variables — see [Environment Variables](./environment-variables.md).
+
+## `connectionString` as a config field
+
+A connection string doesn't have to be the whole argument — `connectionString` on a config object
+works the same way, and a field given alongside it fills in whatever the string doesn't name:
+
+```ts
+const connection = new Connection({
+  connectionString: 'postgres://user:password@host/database',
+  applicationName: 'reports', // not in the string, so this fills it in
+});
+```
+
+This is `pg`'s own spelling of the option (and what `drizzle-orm`'s own first example writes), so
+it's honored the same way `pg` honors it: a value the string names wins over a same-named field
+sitting beside it.
+
+## Misspelled option names are refused
+
+A short list of option names other PostgreSQL clients use — `dbname`, `db`, `username`, `pass`,
+`passwd`, `hostname`, `application_name`, `connect_timeout`, `connectionTimeoutMillis`, `uri`, `url`,
+`connectionUri`, `connection_string` — throw a `TypeError` naming the option that actually works
+here, rather than being silently ignored the way any other unrecognized key is:
+
+```ts
+new Connection({ dbname: 'mydb', host: 'localhost' });
+// TypeError: "dbname" is not a connection option here - did you mean "database"?
+```
+
+Silently ignoring one of these was worse than failing: `dbname` looks right, does nothing, and the
+connection succeeds — against whatever database the environment defaults to — so the mistake used
+to surface later, as missing tables or as writes landing somewhere unintended, rather than at the
+`new Connection()` call that made it. Every other key this client doesn't recognize — including your
+own config's own fields, or `lightning-pool`'s pool options on a `Pool` config — passes through
+untouched, exactly as before.
 
 ## See Also
 

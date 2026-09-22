@@ -40,6 +40,18 @@ console.log(result.rowType); // 'custom'
 
 `data` is never written to or reused by postgrejs once `decode()` is called with it — it's safe to retain a reference to it (or a `Buffer.subarray()` of it) for as long as you want, e.g. to defer decoding a column until it's actually read. The only cost of doing so is memory: `data` is itself a zero-copy view into the socket's own read buffer (up to ~64KB), so holding onto even one row's `data` keeps that whole chunk — and every other row's bytes in it — alive until released.
 
+## `rowType`
+
+`readonly rowType: 'array' | 'object' | 'custom'`
+
+What `QueryResult.rowType`/`Cursor.rowType` reports for rows this decoder produces — `'custom'` on
+the base class, and overridden to `'array'`/`'object'` on the two built-ins. A subclass that changes
+`decode()` but still produces the same shape its parent does (say, an `ArrayRowDecoder` subclass
+that only changes *when* columns are decoded, not their shape) inherits the right value without
+doing anything; a subclass whose `decode()` hands back something else — a lazy view, say — should
+override it to say so, since a caller reading `rowType` to decide how to index the result otherwise
+gets the wrong answer.
+
 ## `decode()`
 
 `abstract decode(parsers: AnyParseFunction[], data: Buffer, columnCount: number, options: DataMappingOptions, fields: FieldInfo[]): any`

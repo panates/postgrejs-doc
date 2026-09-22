@@ -76,11 +76,15 @@ network fault — as opposed to a `close()` the application itself called. When 
 - Whatever call was running on the connection at the time rejects with a
   [`ConnectionLostError`](../api/classes/connection-lost-error.md) instead of a `DatabaseError`,
   since the server never got to answer.
-- `Connection`'s [`'close'`](../api/classes/connection.md#close-1) event fires with that same error
+- `Connection`'s [`'error'`](../api/classes/connection.md#error) event fires with that same error
+  object — the one place code ported from `pg` listens, and the only report there is for a
+  connection that was sitting idle with nothing to reject.
+- `Connection`'s [`'close'`](../api/classes/connection.md#close-1) event also fires, with the same
   object as its `reason`.
-- On a `Pool`, the same object is also the `reason` on [`'destroy'`](../api/classes/pool.md#destroy)
-  and is emitted on [`'error'`](../api/classes/pool.md#error) — with no second argument, which is
-  what separates it from the pool's other use of `'error'` (failing to *create* a connection).
+- On a `Pool`, the same object is the `reason` on [`'destroy'`](../api/classes/pool.md#destroy) and
+  is emitted on the pool's own [`'error'`](../api/classes/pool.md#error) — with no second argument,
+  which is what separates it from the pool's other use of `'error'` (failing to *create* a
+  connection).
 
 `ConnectionLostError.code` is always `'08006'` (`connection_failure`), a value the server itself
 never sends — so branching on `code` reliably tells a lost connection apart from a `DatabaseError`

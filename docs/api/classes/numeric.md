@@ -36,7 +36,8 @@ r.rows[0][0].toNumber();         // 12345678901234568 - lossy, on purpose
 | Method | Returns | Description |
 |:---|:---|:---|
 | `toString()` | `string` | The exact decimal; casts back through `::numeric` |
-| `toJSON()` | `string` | Same as `toString()` |
+| `toPostgres()` | `string` | Same as `toString()` — the `pg`-convention name for "write yourself back" |
+| `toJSON()` | `string` | Same as `toString()` — unlike the other value classes, `Numeric` wraps a single decimal, so its JSON value is that string, not `{"value":"..."}` |
 | `toNumber()` | `number` | The value as a double — lossy, which is the point of this class |
 
 There is deliberately no `valueOf()`. `Numeric` implements `Symbol.toPrimitive`, returning the

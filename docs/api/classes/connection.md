@@ -369,11 +369,12 @@ rolls back only its own work. See
 [Scoped Transactions](../../transactions/transactions-and-savepoints.md#scoped-transactions-transactionfn)
 for the full explanation.
 
-`transaction<T>(fn: (connection: this) => Promise<T>): Promise<T>`
+`transaction<T>(fn: (connection: this) => Promise<T>, options?: TransactionOptions): Promise<T>`
 
 | Argument | Type | Default | Description |
 |----------|------|---------|--------------|
 | fn       | `(connection: this) => Promise<T>` |  | Run inside the transaction (or a savepoint, if nested). Receives this same connection. |
+| options  | `TransactionOptions` |  | Isolation level, read-only, deferrable — see [Transaction Modes](../../transactions/transactions-and-savepoints.md#transaction-modes). Throws if `fn` is called while a transaction is already open (nested — modes apply only to the `BEGIN` that opens one) |
 
 ```ts
 import { Connection } from 'postgrejs';
@@ -400,7 +401,11 @@ A matching number of [`commit()`](#commit) calls is then needed to actually
 commit. See [Transactions & Savepoints](../../transactions/transactions-and-savepoints.md#reference-counting)
 for the full explanation and a worked example.
 
-`startTransaction(): Promise<void>`
+`startTransaction(options?: TransactionOptions): Promise<void>`
+
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| options  | `TransactionOptions` |  | Isolation level, read-only, deferrable, taken on the `BEGIN` itself — see [Transaction Modes](../../transactions/transactions-and-savepoints.md#transaction-modes). Throws if given on a nested call (a transaction is already open) |
 
 ```ts
 import { Connection } from 'postgrejs';
@@ -622,13 +627,17 @@ Triggered when a pooled connection is returned to its `Pool` by `close()`. Never
 
 ### error
 
-Triggered when an error occurs on an already-established (ready) connection.
+Triggered when the connection's socket closes on its own — killed by an administrator, a failover,
+a network fault — rather than because the application called `close()`. This is where code ported
+from `pg` listens, and it's the only report for a connection that had no query running to reject at
+the time; one that did also rejects that call and fires [`'close'`](#close-1) with the same object.
+Safe to leave unhandled: `Connection` drops an `'error'` with no listener instead of throwing.
 
-`(err: Error) => void`
+`(err: ConnectionLostError) => void`
 
-| Argument | Type    | Default | Description    |
-|----------|---------|---------|-----------------|
-| err      | `Error` |         | Error instance  |
+| Argument | Type | Default | Description |
+|----------|------|---------|--------------|
+| err      | [`ConnectionLostError`](./connection-lost-error.md) |  | `code` is always `'08006'` |
 
 ### notice
 

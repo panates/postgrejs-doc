@@ -24,7 +24,8 @@ try {
 
 | Key              | Type     | Readonly | Description                                                                                       |
 |-------------------|----------|----------|-----------------------------------------------------------------------------------------------------|
-| message           | `string` | false    | Human-readable error message (inherited from `Error`)                                                |
+| message           | `string` | false    | Human-readable error message (inherited from `Error`) — includes the appended `at line N column M` excerpt when `position` let postgrejs compute one; see below |
+| serverMessage     | `string` | false    | *(postgrejs-added)* What PostgreSQL actually said, with none of that appended — the raw text worth pattern-matching against, since PostgreSQL puts the interesting part (a column name, a constraint name) only in the message text itself, not in a separate field |
 | severity          | `string` | false    | `ERROR`, `FATAL`, `PANIC`, or (for a notice) `WARNING`, `NOTICE`, `DEBUG`, `INFO`, `LOG`                |
 | code              | `string` | false    | SQLSTATE error code                                                                                    |
 | detail            | `string` | false    | Secondary, more detailed error message                                                                |

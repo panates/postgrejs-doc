@@ -137,11 +137,12 @@ connection back to the pool however that ends. A transaction can't be
 spread across separate `Pool.query()` calls — each is free to land on a
 different connection — so this is how several statements share one.
 
-`transaction<T>(fn: (connection: Connection) => Promise<T>): Promise<T>`
+`transaction<T>(fn: (connection: Connection) => Promise<T>, options?: TransactionOptions): Promise<T>`
 
 | Argument | Type | Default | Description |
 |----------|------|---------|--------------|
 | fn       | `(connection: Connection) => Promise<T>` |  | Run inside the transaction, on the acquired connection. |
+| options  | `TransactionOptions` |  | Isolation level, read-only, deferrable — see [Transaction Modes](../../transactions/transactions-and-savepoints.md#transaction-modes) |
 
 ```ts
 import { Pool } from 'postgrejs';
