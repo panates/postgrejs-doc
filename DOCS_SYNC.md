@@ -16,26 +16,33 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `f5f9d79677622b2ce1b7510f0b3a4dd309f74e74` |
-| Source commit (short) | `f5f9d79` |
-| Source commit date | 2026-09-21T09:30:59+03:00 |
-| Source `package.json` version | 3.8.0 |
-| This repo's commit at sync time | `e35b206` |
-| Synced at | 2026-09-21T06:55:00Z |
-| Synced by | Claude Code session — reviewed the diff from `35aeca7` (3.7.0) through 3.8.0, a small release. Everything below was verified against a real PostgreSQL 18 server before being written up. **New:** `'notice'` event on `Connection`/`Pool` — a `RAISE NOTICE`, or PostgreSQL's own "table does not exist, skipping" from `DROP TABLE IF EXISTS`, now reaches the caller instead of being silently dropped (new "Server Notices" section in `error-handling.md`, events added to `connection.md`/`pool.md`). **Fixes:** a plain `string` or `Date` parameter (and arrays of either) now goes out with no declared type instead of `varchar`/`timestamp`, letting the server resolve it from context — fixes `json`/`jsonb` columns, enum columns, `uuid` comparisons, `coalesce()`, array-typed columns, and `timestamptz` round-tripping across session time zones, all previously refused or silently wrong; costs one thing, a parameter with no context at all (`$1 is null`) now needs a cast or `BindParam` (new "Strings and Dates go out unspecified" section in `query-parameters.md`, noted the `determine()`-bypass in `data-type-map.md`); a binary-encoded array parameter now writes PostgreSQL's own lower bound (`1`) instead of `0`, so `v[1]`/`array_lower(v,1)` agree with a text literal's (noted in `data-types.md`'s Array types section). Also bumped the navbar badge and `features.md`'s comparison caption to v3.8.0, added a Features bullet for notices. Benchmark reports unchanged since the last sync (same run). |
+| Source commit | `2a1ac651dff26176288e9b74f94bb6e190428f41` |
+| Source commit (short) | `2a1ac65` |
+| Source commit date | 2026-09-22T19:46:58+03:00 |
+| Source `package.json` version | 3.10.1 |
+| This repo's commit at sync time | `ada0349` |
+| Synced at | 2026-09-22T18:30:00Z |
+| Synced by | Claude Code session — reviewed the diff from `f5f9d79` (3.8.0) through 3.9.0, 3.10.0 and 3.10.1. Large release; read the source's own `doc/MIGRATION-v3.9-to-v3.10.md` first, then verified every claim below against a real PostgreSQL 18 server. **Breaking (reverses what an earlier sync documented):** every value class's `toJSON()` now returns its fields instead of the literal string (`String(v)`/`toPostgres()` still give the literal) — this exact reversal required fixing `data-types.md`, `geometric-types.md`, `interval.md`, `range.md`, `numeric.md`, which the 3.7.0 sync had documented the other way; `Interval` now only carries fields with a value (`iv.hours` is `undefined`, not `0`, when absent); an array of numbers/bigints now goes out as a parameter unspecified, same as strings/Dates since 3.7 (renamed `query-parameters.md`'s section to cover it); `Circle.radius` replaces `r` as the own field (`r` stays as an accessor). **New:** `temporalTypes` decodes date/time types into `Temporal` values (new "Temporal Values" section); `money` now decodes instead of arriving as a `Buffer` (new "Money" section, dropped as the "Enum, Extension..." section's example since it's no longer unregistered); `decimalAsString` for exact numeric/money decimal strings; `fetchAsString` can name an array's element OID to get its elements, or `{oid, arrays:false}` to scope to just the scalar; transaction modes (`isolationLevel`/`readOnly`/`deferrable`) on `startTransaction()`/`transaction()`/`Pool.transaction()`; a lost connection now also fires `'error'` (not just `'close'`) on a bare `Connection`; `connectionString` honored as a config field, a short list of misspelled option names (`dbname`, `username`, ...) now throws instead of silently doing nothing; every data-mapping option settable once on `Connection`/`Pool` instead of per-call; `DatabaseError.serverMessage`; `pipeline` moved to `QueryOptions`, so it's also a per-call opt-*out* on a `Connection`. **Fixes:** `postgresql://` parses its database name and is accepted as a bare scheme; empty/comment-only statements return an empty result instead of throwing; a burst of the same unprepared SQL no longer leaks orphaned server-side statements. **Also caught and fixed two pre-existing doc bugs unrelated to this release**, found while re-verifying: `stringify-value-for-sql.md` claimed a `Date` gets a `::timestamptz` cast (it's written bare — this was wrong before 3.9 too), and `sql-tag.md`'s `stringify()` example for a number array was stale before this release as well. Re-copied both benchmark reports (new run). Bumped `features.md`'s comparison caption and the navbar badge to v3.10.1. |
 
 **Style note for future syncs:** avoid an "X of Y total" framing for what postgrejs *doesn't* do
 (e.g. "125 of 172 OIDs registered, 47 aren't, here's why each can't be") — it reads as an apology
 rather than a feature list. State coverage as a positive count and let a "here's the feature that
 covers the rest" pointer (e.g. `unknownTypesAsString`) carry the practical info instead.
 
+**Process note for future syncs:** when the source repo's own `doc/MIGRATION-*.md` exists for the
+version range being synced, read it first — it's the release's own account of what's breaking and
+why, more reliable than reconstructing it from commit messages alone. Also: re-verify claims already
+in this site even when they're not the topic of the current sync (`stringify-value-for-sql.md`'s
+stale `Date` example above was caught this way) — a doc can go stale for reasons other than the
+release being synced.
+
 **To check what's changed in the source since this was recorded:**
 
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline f5f9d79677622b2ce1b7510f0b3a4dd309f74e74..origin/dev -- src/ README.md CHANGELOG.md
-git diff f5f9d79677622b2ce1b7510f0b3a4dd309f74e74..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline 2a1ac651dff26176288e9b74f94bb6e190428f41..origin/dev -- src/ README.md CHANGELOG.md
+git diff 2a1ac651dff26176288e9b74f94bb6e190428f41..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
@@ -53,12 +60,12 @@ main documentation.
 | Field | Value |
 |---|---|
 | Source files | `/Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md` (Node), `doc/BENCHMARKS-bun.md` (Bun) |
-| Source commit at last copy | `35aeca7eb713de61e3e5d63b15b7f4ffbe652410` |
-| Node run date (from the report itself) | 2026-09-16T18:36:39.004Z |
-| Bun run date (from the report itself) | 2026-09-16T18:36:39.044Z |
-| Library versions in that run | PostgreJS 3.5.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
-| This repo's commit at sync time | `73d8b16` |
-| Synced at | 2026-09-20T19:59:00Z |
+| Source commit at last copy | `2a1ac651dff26176288e9b74f94bb6e190428f41` |
+| Node run date (from the report itself) | 2026-09-21T13:08:25.978Z |
+| Bun run date (from the report itself) | 2026-09-21T13:08:26.011Z |
+| Library versions in that run | PostgreJS 3.9.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.3.10 (Bun report only) |
+| This repo's commit at sync time | `ada0349` |
+| Synced at | 2026-09-22T18:30:00Z |
 
 **To check for a newer report:**
 
