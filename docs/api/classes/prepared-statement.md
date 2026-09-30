@@ -38,7 +38,27 @@ const statement = await connection.prepare(
 | connection | [Connection](./connection.md) | true     | Returns the connection this statement belongs to               |
 | name       | `string \| undefined`        | true     | Returns the server-side name assigned to this statement          |
 | sql        | `string`                      | true     | Returns the SQL that was prepared                                |
-| paramTypes | `OID[] \| undefined`          | true     | Returns the parameter type OIDs the statement was prepared with |
+| paramTypes | `OID[] \| undefined`          | true     | Returns the parameter type OIDs the statement was prepared with, as declared by the caller |
+| resolvedParamTypes | `OID[] \| undefined`  | true     | What the server made of each parameter, in order — see below |
+
+### `resolvedParamTypes`
+
+The server's `Describe` answers with the parameters as well as the columns, and this is that
+answer kept rather than discarded. A parameter the caller declared nothing for is resolved by the
+server from where it appears — the column it's inserted into, the operator beside it, the function
+it's passed to — never from the value itself, which is still three messages away when the server
+gives this answer. So it's a property of the statement, stable across every `execute()`:
+
+```ts
+const statement = await connection.prepare('insert into t(v) values($1)');
+statement.resolvedParamTypes; // [21] — int2, if t.v is an int2 column
+```
+
+Useful for two things: it says what a parameter with no context became — `prepare('select $1')`
+resolves to `text`, which is the whole explanation for an untyped array coming back as an array
+literal there — and it names the type to hand a [`BindParam`](./bind-param.md) for a caller who
+wants the binary encoding back that [an untyped numeric array gives up](../../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified).
+`undefined` until the statement has actually been prepared.
 
 ## Methods
 
@@ -60,6 +80,26 @@ for (let i = 0; i < 100; i++) {
 }
 await statement.close();
 ```
+
+A [`BindParam`](./bind-param.md) in `params` has its value unwrapped before it reaches the wire —
+unlike `Connection.query()`, a prepared statement's parameter types are already fixed by its
+`Parse`, so `BindParam` can't declare a new one here. Naming the same type the statement already
+has (or that [`resolvedParamTypes`](#resolvedparamtypes) reports) is a no-op; naming a different
+one throws, since believing it would read the bytes back as the wrong type:
+
+```ts
+const statement = await connection.prepare('insert into bp(v) values($1)', {
+  paramTypes: [DataTypeOIDs.text],
+});
+await statement.execute({ params: [new BindParam(DataTypeOIDs.int4, 5)] });
+// TypeError: Parameter $1 was given as int4 (23), but this prepared
+// statement's $1 is text (25). A prepared statement takes its parameter
+// types at prepare(sql, { paramTypes }), and they cannot be changed per
+// execution.
+```
+
+The same unwrapping applies to a cursor's `Bind` and to every parameter set in `executeBatch()`
+below.
 
 ### executeBatch()
 

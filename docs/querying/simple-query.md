@@ -100,8 +100,23 @@ It defaults to `DataFormat.binary`, which is faster to parse and avoids locale-d
 
 For anything that takes user-supplied values, prefer [`query()`](./extended-query.md) — it sends values out of band, which is both simpler and safer than building literals by hand.
 
+### Choosing at runtime with `isMultiStatement()`
+
+A caller that already knows which shape its SQL is just picks the right method. Something that
+takes SQL from somewhere else and has to hand it to one of the two — an ORM adapter, a migration
+runner, a REPL — can't: nothing on the wire says how many statements a string holds until the
+server has already parsed it, which is too late to have chosen the protocol. [`isMultiStatement(sql)`](../api/functions/is-multi-statement.md)
+answers that in advance, from the SQL text alone:
+
+```ts
+import { isMultiStatement } from 'postgrejs';
+
+const result = isMultiStatement(sql) ? await connection.execute(sql) : await connection.query(sql);
+```
+
 ## See also
 
 - [`ScriptResult`](../api/interfaces/script-result.md), [`CommandResult`](../api/interfaces/command-result.md), [`ScriptExecuteOptions`](../api/interfaces/script-execute-options.md) reference
+- [`isMultiStatement()`](../api/functions/is-multi-statement.md) reference
 - [Extended Query](./extended-query.md)
 - [The `sql` Template Tag](./sql-tag.md)

@@ -69,6 +69,36 @@ client's own value classes) keep their declared type and binary encoding — eac
 one type it could be, so declaring it isn't a guess and keeps what a text literal gives up. An empty
 array is untouched too: `determine()` still answers `unknown` for it, same as before.
 
+Going out unspecified has a real, measured cost for a large numeric array — inserting the same
+value over a loopback connection, alternating text against a named `BindParam` within each round,
+medians of nine:
+
+| | as text (unspecified) | as `BindParam` | |
+| :--- | :--- | :--- | :--- |
+| `float8[]`, 1,000 elements | 2.33ms | 0.91ms | 2.6x |
+| `float8[]`, 10,000 elements | 17.34ms | 3.75ms | 4.6x |
+| `float8[]`, 100,000 elements | 143.0ms | 26.9ms | 5.3x |
+| `int4[]`, 100,000 elements | 24.5ms | 15.5ms | 1.6x |
+
+It grows with the array and with how wide an element's text is against its binary — a `float8` is 8
+bytes against about 19 characters, an `int4` is 4 against up to 11, and most of what a `float8[]`
+costs is the server's own parse of that text rather than the writing of it. It's a real price paid
+for a correctness the client can't buy any other way before the server has resolved the parameter:
+a caller who knows the column — and for a large numeric array that's worth knowing — names the type
+directly and gets the binary encoding back with nothing given up:
+
+```ts
+import { BindParam, DataTypeOIDs } from 'postgrejs';
+
+await connection.query('insert into readings (samples) values ($1)', {
+  params: [new BindParam(DataTypeOIDs._float8, values)],
+});
+```
+
+A prepared statement that's already been described knows exactly which type the server resolved
+for a reused parameter — see [`PreparedStatement.resolvedParamTypes`](../api/classes/prepared-statement.md#properties)
+— which is the type to hand `BindParam` here instead of guessing at it.
+
 This is also what `pg` sends for both, and it costs one specific thing: a parameter with **no
 context to resolve a type from** — `$1 is null`, `array_agg($1)`, `concat($1, 1)` — now raises
 `could not determine data type of parameter $1`, exactly as it does under `pg`. A cast (`$1::text`)
@@ -125,8 +155,8 @@ await connection.query('insert into t (a, b) values ($1, $2)', {
 
 ## Values with no numeric reading
 
-Once a value is actually headed through an `int2`/`int4`/`int8`/`float4`/`float8`/`numeric` encoder —
-typically because its type was pinned with `BindParam`, as [`copyFromRows()`](../bulk-data/copy.md#binary-copy-from-loading-js-rows-directly-with-copyfromrows)
+Once a value is actually headed through a numeric encoder — typically because its type was pinned
+with `BindParam`, as [`copyFromRows()`](../bulk-data/copy.md#binary-copy-from-loading-js-rows-directly-with-copyfromrows)
 does for every column — something that can't be read as a number (`'abc'`, `{}`, `[]`, `true`) throws a
 `TypeError` rather than silently encoding as `0`:
 
@@ -140,10 +170,37 @@ await connection.query('insert into t (n) values ($1)', {
 A plain, untyped `params: [{}]` doesn't reach this at all — `DataTypeMap.determine()` detects a bare
 object as `jsonb` before any int4 encoder sees it, so PostgreSQL itself rejects the mismatch first.
 
-Truncation is unaffected — `3.7` into an integer column still encodes as `3`, and `'42'` still encodes as
-`42`; only a value with no numeric reading at all is refused. `NaN`/`Infinity` are also left alone for
-`float4`/`float8`/`numeric`, since PostgreSQL stores those as values distinct from `NULL` rather than
-rejecting them.
+For the whole-number types (`int2`, `int4`, `int8`, `oid`, `xid`, `xid8`, `cid`), the rule is
+stricter than it once was: **a fractional value is refused, not floored.** `3.7` into an `int4`
+column used to silently encode as `3` (and `-1.5` as `-2`, a floor rather than a truncation) — the
+same value sent as *text* has always raised PostgreSQL's own `22P02`, so which behavior a caller
+got depended on which wire format the parameter happened to take, not on anything they controlled.
+Binary encoding now refuses exactly what text would:
+
+```ts
+await connection.query('select $1::int4', {
+  params: [new BindParam(DataTypeOIDs.int4, 1.5)],
+});
+// TypeError: Cannot encode 1.5 as int4: it is not an integer
+
+await connection.query('select $1::int4', {
+  params: [new BindParam(DataTypeOIDs.int4, '0x10')],
+});
+// TypeError: Cannot encode "0x10" as int4: it is not an integer
+```
+
+A caller who does mean 3 rounds or truncates before the call, or casts and lets the server do it
+(`$1::int4` against a `float8` parameter). A string is read the way PostgreSQL's own `int4in()`
+reads one — optional sign, digits, surrounding whitespace trimmed, nothing else — so `' -42 '` and
+`'42'` still work but `'1e3'` and `''` don't. A `bigint` is now accepted for every one of these
+types (previously refused for anything narrower than `int8`), and each type's own range is checked
+here rather than left to `Buffer`, so an out-of-range value names both the type and the value
+(`Cannot encode 40000 as int2: it is out of range (-32768 to 32767)`) instead of a generic
+`RangeError`.
+
+`float4`, `float8` and `numeric` are unaffected by any of this: they still truncate nothing (there's
+nothing to truncate), and `NaN`/`Infinity` are left alone, since PostgreSQL stores those as values
+distinct from `NULL` rather than rejecting them.
 
 ## See also
 

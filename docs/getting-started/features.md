@@ -51,7 +51,7 @@ sidebar_position: 2
 
 ## Feature Comparison
 
-How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js) — versions compared: **postgrejs 3.10.1, pg 8.23.0, postgres.js 3.4.9**. ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
+How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js) — versions compared: **postgrejs 3.12.1, pg 8.23.0, postgres.js 3.4.9**. ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
 
 | Feature | postgrejs | pg | postgres.js |
 |:---|:---:|:---:|:---:|
