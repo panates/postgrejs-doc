@@ -26,7 +26,7 @@ postgrejs decodes every PostgreSQL wire value into a native JS type through a `D
 | `varchar` | `string` | |
 | `uuid` | `string` | canonical `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` form |
 | `date` | `Date` | |
-| `time` | `string` | |
+| `time` | `Date` | the clock time on 1970-01-01 in the client's local zone — read the wall-clock fields, or use [`temporalTypes`](#temporal-values) for a `Temporal.PlainTime` |
 | `timetz` | `string` | clock time plus a UTC offset, e.g. `12:34:56.789+03` — a `Date` has no field for the offset, so this stays a string. See [System Columns and Identifiers](#system-columns-and-identifiers) for the neighboring types |
 | `timestamp` | `Date` | |
 | `timestamptz` | `Date` | |
