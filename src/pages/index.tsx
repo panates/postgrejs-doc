@@ -403,9 +403,9 @@ export default function Home(): React.JSX.Element {
       <main>
         <Pillars />
         <CodeExample />
+        <Integrations />
         <Features />
         <Comparison />
-        <Integrations />
         <QuickStart />
       </main>
     </Layout>
