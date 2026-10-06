@@ -20,7 +20,7 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source commit (short) | `1a4e5df` |
 | Source commit date | 2026-10-06T12:12:51+00:00 |
 | Source `package.json` version | 3.13.0 |
-| This repo's commit at sync time | `PENDING` |
+| This repo's commit at sync time | `a325b85` |
 | Synced at | 2026-10-06T13:28:15Z |
 | Synced by | Claude Code session — reviewed the diff from `6c09694` (3.12.1) through 3.12.2, 3.12.3 and 3.13.0. No `doc/MIGRATION-*.md` for this range; worked from commit messages, verified each claim below against a real PostgreSQL 18 server. **Behavior change:** a finite non-integer JS number is now declared `numeric` instead of `float8`, because PostgreSQL has `numeric → money` (an assignment cast) but no `float8 → money` at all — `($1::money)::text` worked with `12` and failed with `42846` for `12.34`; a `float8` column is unaffected (`numeric → float8` is implicit, checked bit for bit), `NaN`/`±Infinity` stay `float8` (documented in `query-parameters.md`'s "Automatic type detection"). **Fix:** `BindParam(0, v)` (undeclared) now writes a value the way `pg` does — `toPostgres()` honored, a plain object as JSON, also inside arrays — instead of `[object Object]` (new "OID `0`: no declared type" subsection in `query-parameters.md` + a pointer from `bind-param.md`); a pre-2000 `date` encoded in binary was a day late (`Math.trunc` → `Math.floor`; no doc change — never documented, and the fix is internal). **Perf, no doc change:** a reused `Date` binds binary against the type the server resolved from the third execution on; statement assembly from a view of the Bind; the README's SQB label is now "first-party adapter" (we never said "native"). No new exports. Re-copied both benchmark reports (new run date; one new methodology bullet about `asyncErrorHandling` being off in the harness). Bumped `features.md`'s comparison caption and the navbar badge to v3.13.0. |
 
@@ -64,7 +64,7 @@ main documentation.
 | Node run date (from the report itself) | 2026-10-05T17:29:57.699Z |
 | Bun run date (from the report itself) | 2026-10-05T17:29:57.704Z |
 | Library versions in that run | PostgreJS 3.12.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.4.2 (Bun report only) |
-| This repo's commit at sync time | `PENDING` |
+| This repo's commit at sync time | `a325b85` |
 | Synced at | 2026-10-06T13:28:15Z |
 
 **To check for a newer report:**
