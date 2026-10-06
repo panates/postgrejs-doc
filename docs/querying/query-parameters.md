@@ -30,6 +30,14 @@ await connection.query('select * from customers where country_code = ANY($1)', {
 
 `null` is always sent as `NULL` regardless of position.
 
+A `number` is detected by its value: a whole number gets an integer type, and a finite fraction is
+declared `numeric` — not `float8`. The distinction matters where PostgreSQL has a cast from one but
+not the other: there is an `int4 → money` cast and a `numeric → money` cast, but no `float8 → money`
+at all, so `select ($1::money)::text` works with `12` and, since a fractional amount is `numeric`,
+with `12.34` too (it used to fail with `42846` for the second). A `float8` column is unaffected —
+`numeric → float8` is an implicit cast, and the value arrives bit for bit. `NaN` and `±Infinity`
+stay `float8`, which carries all three on every supported server version.
+
 ## Strings, Dates, and numeric arrays go out unspecified
 
 Three shapes are the exception to automatic type detection: a plain `string`, a `Date`, and an
@@ -152,6 +160,31 @@ await connection.query('insert into t (a, b) values ($1, $2)', {
   params: [new BindParam(DataTypeOIDs.int4, 1), 'plain string'],
 });
 ```
+
+### OID `0`: no declared type
+
+`new BindParam(0, value)` declares nothing and lets the server resolve the type from where the
+parameter appears — the same thing a plain string, `Date` or numeric array gets
+[automatically](#strings-dates-and-numeric-arrays-go-out-unspecified), spelled out for a value that
+wouldn't get it by default, such as a number that has to be read as an `interval` (there's no cast to
+`interval` from any numeric type, so only an undeclared parameter reaches it). The value still goes
+out as text, and it's written the way `pg` writes one: a value with a `toPostgres()` method writes
+itself (what it returns is run through the same rules), and any other plain object goes out as JSON —
+inside an array too:
+
+```ts
+await connection.query('select $1::text', {
+  params: [new BindParam(0, { a: 1, b: 'x' })],
+}); // '{"a":1,"b":"x"}'
+
+await connection.query('select $1::text[]', {
+  params: [new BindParam(0, [{ a: 1 }, { a: 2 }])],
+}); // ['{"a":1}', '{"a":2}']
+```
+
+Two spellings still differ from `pg`'s, both ones the server reads identically: a `Date` is written
+with a space between date and time rather than a `T`, and a number array's elements aren't quoted
+(10–26% smaller on the wire).
 
 ## Values with no numeric reading
 

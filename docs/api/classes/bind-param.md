@@ -25,6 +25,8 @@ await connection.query('select lo_unlink($1)', {
 });
 ```
 
+`oid` may be `0`, which declares no type and leaves the server to resolve one from where the parameter appears — see [OID `0`: no declared type](../../querying/query-parameters.md#oid-0-no-declared-type).
+
 ## Properties
 
 | Key   | Type   | Readonly | Description                       |

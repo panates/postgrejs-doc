@@ -16,13 +16,13 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `6c09694b4da3dab891bd9ec66100fe990d2bdce5` |
-| Source commit (short) | `6c09694` |
-| Source commit date | 2026-09-29T19:45:20+03:00 |
-| Source `package.json` version | 3.12.1 |
-| This repo's commit at sync time | `0e2def7` |
-| Synced at | 2026-09-30T06:16:45Z |
-| Synced by | Claude Code session — reviewed the diff from `2a1ac65` (3.10.1) through 3.11.0, 3.11.1, 3.12.0 and 3.12.1. No `doc/MIGRATION-*.md` for this range; worked from `CHANGELOG.md` and individual commit messages, verified every claim below against a real PostgreSQL 18 server. **Breaking:** an integer binary encoder (`int2`/`int4`/`int8`/`oid`/`xid`/`xid8`/`cid`) now refuses a fractional value or a non-decimal string instead of flooring/zeroing it — text encoding always refused these (`22P02`), binary silently didn't, so which behavior a caller got depended on which wire format the parameter happened to take; a `bigint` is now accepted for every one of these types, and each type's own range is checked with a message naming both the type and the value (rewrote `query-parameters.md`'s "Values with no numeric reading" section). **New:** `isMultiStatement(sql)` — a one-pass scanner a caller with a single SQL-taking entry point (an ORM adapter, a migration runner) uses to pick `query()` vs `execute()` before sending, since nothing on the wire answers that in time (new `docs/api/functions/is-multi-statement.md`, mentioned in `simple-query.md`); `PreparedStatement.resolvedParamTypes` exposes what the server's `Describe` resolved for each parameter — read-only, nothing acts on it yet, but it's the type to hand a `BindParam` for the binary encoding an untyped numeric array otherwise gives up (new property + note in `prepared-statement.md`). **Fix:** `PreparedStatement.execute()`/`executeBatch()`/cursor `Bind` didn't unwrap a `BindParam` the way `Connection.query()` does — the object itself reached the encoder and went out as `"[object Object]"` on a text column; now unwrapped, and a `BindParam` naming a different type than the statement was prepared/resolved with throws instead (documented in `prepared-statement.md`). Added measured cost numbers (2.6x–5.3x for a large `float8[]`, 1.6x for `int4[]`) to `query-parameters.md`'s unspecified-array section, sourced from the release's own re-measurement. Re-copied both benchmark reports (new run, new Peak-Heap/Retained/Net-bytes methodology, restructured into three subsections). Bumped `features.md`'s comparison caption and the navbar badge to v3.12.1. |
+| Source commit | `1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd` |
+| Source commit (short) | `1a4e5df` |
+| Source commit date | 2026-10-06T12:12:51+00:00 |
+| Source `package.json` version | 3.13.0 |
+| This repo's commit at sync time | `PENDING` |
+| Synced at | 2026-10-06T13:28:15Z |
+| Synced by | Claude Code session — reviewed the diff from `6c09694` (3.12.1) through 3.12.2, 3.12.3 and 3.13.0. No `doc/MIGRATION-*.md` for this range; worked from commit messages, verified each claim below against a real PostgreSQL 18 server. **Behavior change:** a finite non-integer JS number is now declared `numeric` instead of `float8`, because PostgreSQL has `numeric → money` (an assignment cast) but no `float8 → money` at all — `($1::money)::text` worked with `12` and failed with `42846` for `12.34`; a `float8` column is unaffected (`numeric → float8` is implicit, checked bit for bit), `NaN`/`±Infinity` stay `float8` (documented in `query-parameters.md`'s "Automatic type detection"). **Fix:** `BindParam(0, v)` (undeclared) now writes a value the way `pg` does — `toPostgres()` honored, a plain object as JSON, also inside arrays — instead of `[object Object]` (new "OID `0`: no declared type" subsection in `query-parameters.md` + a pointer from `bind-param.md`); a pre-2000 `date` encoded in binary was a day late (`Math.trunc` → `Math.floor`; no doc change — never documented, and the fix is internal). **Perf, no doc change:** a reused `Date` binds binary against the type the server resolved from the third execution on; statement assembly from a view of the Bind; the README's SQB label is now "first-party adapter" (we never said "native"). No new exports. Re-copied both benchmark reports (new run date; one new methodology bullet about `asyncErrorHandling` being off in the harness). Bumped `features.md`'s comparison caption and the navbar badge to v3.13.0. |
 
 **Style note for future syncs:** avoid an "X of Y total" framing for what postgrejs *doesn't* do
 (e.g. "125 of 172 OIDs registered, 47 aren't, here's why each can't be") — it reads as an apology
@@ -41,8 +41,8 @@ release being synced.
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline 6c09694b4da3dab891bd9ec66100fe990d2bdce5..origin/dev -- src/ README.md CHANGELOG.md
-git diff 6c09694b4da3dab891bd9ec66100fe990d2bdce5..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline 1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd..origin/dev -- src/ README.md CHANGELOG.md
+git diff 1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
@@ -60,12 +60,12 @@ main documentation.
 | Field | Value |
 |---|---|
 | Source files | `/Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md` (Node), `doc/BENCHMARKS-bun.md` (Bun) |
-| Source commit at last copy | `6c09694b4da3dab891bd9ec66100fe990d2bdce5` |
-| Node run date (from the report itself) | 2026-09-29T06:10:29.113Z |
-| Bun run date (from the report itself) | 2026-09-29T06:10:29.135Z |
+| Source commit at last copy | `1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd` |
+| Node run date (from the report itself) | 2026-10-05T17:29:57.699Z |
+| Bun run date (from the report itself) | 2026-10-05T17:29:57.704Z |
 | Library versions in that run | PostgreJS 3.12.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.4.2 (Bun report only) |
-| This repo's commit at sync time | `0e2def7` |
-| Synced at | 2026-09-30T06:16:45Z |
+| This repo's commit at sync time | `PENDING` |
+| Synced at | 2026-10-06T13:28:15Z |
 
 **To check for a newer report:**
 
