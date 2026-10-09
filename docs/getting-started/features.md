@@ -37,6 +37,7 @@ sidebar_position: 2
 - **Bulk Import/Export** — `COPY TO STDOUT` and `COPY FROM STDIN` as Node streams, with backpressure in both directions, plus `copyFromRows()`, which encodes rows straight into binary `COPY` — around 4x faster than the CSV equivalent and no text escaping to get wrong. Takes arrays or objects from anything iterable, so a file larger than memory streams in. See [COPY TO / COPY FROM](../bulk-data/copy.md).
 - **Query Pipelining** — Pooled queries can share connections so a burst isn't capped by pool size, opt-in per call. `pipeline()` goes further for a known set of statements: several different ones travel under a single `Sync`, so they cost one round trip instead of one each and commit or roll back together — around 2x faster than the same calls through `Promise.all()`, which is already pipelined. Statements the connection has run before bind to their cached prepared names, so a repeated set sends no `Parse` at all — worth 2.5x on twenty statements. See [Connection Pooling](../connecting/pooling.md#pipelining) and [Extended Query: Multi-Statement Pipelines](../querying/extended-query.md#multi-statement-pipelines).
 - **Dynamic SQL** — A `sql` tag builds statements from composable fragments: values become parameters, names are quoted, and `sql.values()`/`sql.set()` write INSERT and UPDATE clauses from objects. See [The sql Template Tag](../querying/sql-tag.md).
+- **Cloudflare Workers** — Runs on workerd under `nodejs_compat` with nothing else installed, TLS included (through the runtime's own `startTls()`, for servers whose certificate chains to a public CA), and [Hyperdrive](https://developers.cloudflare.com/hyperdrive/) for everything else. Not in a published release yet. See [Cloudflare Workers](../connecting/cloudflare-workers.md).
 - **Multiple Hosts** — A connection can list several servers and pick one by role (`targetSessionAttrs`), so a cluster that has failed over is found on the next connect. See [Multi-Host & Failover](../connecting/multi-host.md).
 - **Large Objects** — File-like access to binary data stored outside the row: seek, partial reads, streams, for values past what a `bytea` column can hold. See [Large Objects](../bulk-data/large-objects.md).
 - **Logical Replication** — `LogicalReplication` streams committed row changes as an async iterable, decoding `pgoutput` itself, with client-side filtering and positions confirmed as you consume. See [Logical Replication](../bulk-data/logical-replication.md).
@@ -59,6 +60,7 @@ How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-
 | Packages to install | 1 | 4 | 1 |
 | Module system | ESM | ESM/CJS | ESM/CJS |
 | Language | TS | JS | JS |
+| Cloudflare Workers | ✅ | 🟡 | ✅ |
 | ***Wire protocol*** | | | |
 | Protocol version | 3.2 | 3.0 | 3.0 |
 | Simple Query protocol | ✅ | ✅ | ✅ |

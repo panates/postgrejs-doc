@@ -16,13 +16,12 @@ changed before touching any page — not re-read the whole source from scratch.
 | Source repo path | `/Users/ehanoglu/dev/oslib/postgrejs` |
 | Source remote | `https://github.com/panates/postgrejs.git` |
 | Source branch | `dev` |
-| Source commit | `1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd` |
-| Source commit (short) | `1a4e5df` |
-| Source commit date | 2026-10-06T12:12:51+00:00 |
+| Source commit | `d34aacf6ec1de4c208a64c9e245742cd848b5a32` |
+| Source commit (short) | `d34aacf` |
+| Source commit date | 2026-10-09T16:12:23+03:00 |
 | Source `package.json` version | 3.13.0 |
-| This repo's commit at sync time | `a325b85` |
-| Synced at | 2026-10-06T13:28:15Z |
-| Synced by | Claude Code session — reviewed the diff from `6c09694` (3.12.1) through 3.12.2, 3.12.3 and 3.13.0. No `doc/MIGRATION-*.md` for this range; worked from commit messages, verified each claim below against a real PostgreSQL 18 server. **Behavior change:** a finite non-integer JS number is now declared `numeric` instead of `float8`, because PostgreSQL has `numeric → money` (an assignment cast) but no `float8 → money` at all — `($1::money)::text` worked with `12` and failed with `42846` for `12.34`; a `float8` column is unaffected (`numeric → float8` is implicit, checked bit for bit), `NaN`/`±Infinity` stay `float8` (documented in `query-parameters.md`'s "Automatic type detection"). **Fix:** `BindParam(0, v)` (undeclared) now writes a value the way `pg` does — `toPostgres()` honored, a plain object as JSON, also inside arrays — instead of `[object Object]` (new "OID `0`: no declared type" subsection in `query-parameters.md` + a pointer from `bind-param.md`); a pre-2000 `date` encoded in binary was a day late (`Math.trunc` → `Math.floor`; no doc change — never documented, and the fix is internal). **Perf, no doc change:** a reused `Date` binds binary against the type the server resolved from the third execution on; statement assembly from a view of the Bind; the README's SQB label is now "first-party adapter" (we never said "native"). No new exports. Re-copied both benchmark reports (new run date; one new methodology bullet about `asyncErrorHandling` being off in the harness). Bumped `features.md`'s comparison caption and the navbar badge to v3.13.0. |
+| This repo's commit at sync time | `PENDING`26-10-09T13:40:00Z |
+| Synced by | Claude Code session — reviewed the diff from `6c09694` (3.12.1) through 3.12.2, 3.12.3 and 3.13.0. No `doc/MIGRATION-*.md` for this range; worked from commit messages, verified each claim below against a real PostgreSQL 18 server. **Behavior change:** a finite non-integer JS number is now declared `numeric` instead of `float8`, because PostgreSQL has `numeric → money` (an assignment cast) but no `float8 → money` at all — `($1::money)::text` worked with `12` and failed with `42846` for `12.34`; a `float8` column is unaffected (`numeric → float8` is implicit, checked bit for bit), `NaN`/`±Infinity` stay `float8` (documented in `query-parameters.md`'s "Automatic type detection"). **Fix:** `BindParam(0, v)` (undeclared) now writes a value the way `pg` does — `toPostgres()` honored, a plain object as JSON, also inside arrays — instead of `[object Object]` (new "OID `0`: no declared type" subsection in `query-parameters.md` + a pointer from `bind-param.md`); a pre-2000 `date` encoded in binary was a day late (`Math.trunc` → `Math.floor`; no doc change — never documented, and the fix is internal). **Perf, no doc change:** a reused `Date` binds binary against the type the server resolved from the third execution on; statement assembly from a view of the Bind; the README's SQB label is now "first-party adapter" (we never said "native"). No new exports. Re-copied both benchmark reports (new run date; one new methodology bullet about `asyncErrorHandling` being off in the harness). Bumped `features.md`'s comparison caption and the navbar badge to v3.13.0. **Update 2026-10-09 (source `1a4e5df` → `d34aacf`, `package.json` still 3.13.0):** the only change is **Cloudflare Workers support, which is NOT in a published release** (latest on npm is 3.13.0; the Workers code — `workerd-socket.ts`, `startTls()` upgrade, the refusals for `sslNegotiation: 'direct'` and `channelBinding: 'require'` — landed after it on `dev`). Documented anyway at the maintainer's request in a new `docs/connecting/cloudflare-workers.md` (slug `/guides/cloudflare-workers`, so `https://www.postgrejs.com/docs/guides/cloudflare-workers`), with a "Not in a published release yet" caution that must be removed once a release ships; also a pointer in `ssl-tls.md`, a `features.md` bullet and comparison row. The workerd behavior (TLS, Hyperdrive, `os.totalmem()` = 0) is taken from the source repo's `doc/CLOUDFLARE-WORKERS.md` — not re-measured here (no `wrangler`); the `sslmode=disable` string Hyperdrive hands over was checked against a real server. The source README's "Cloudflare Workers - ... without TLS" bullet contradicts that doc and the code (TLS works for public-CA certificates); the doc was followed. Re-verify on the release that carries it. |
 
 **Style note for future syncs:** avoid an "X of Y total" framing for what postgrejs *doesn't* do
 (e.g. "125 of 172 OIDs registered, 47 aren't, here's why each can't be") — it reads as an apology
@@ -41,8 +40,8 @@ release being synced.
 ```bash
 cd /Users/ehanoglu/dev/oslib/postgrejs
 git fetch origin
-git log --oneline 1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd..origin/dev -- src/ README.md CHANGELOG.md
-git diff 1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd..origin/dev -- src/ README.md CHANGELOG.md
+git log --oneline d34aacf6ec1de4c208a64c9e245742cd848b5a32..origin/dev -- src/ README.md CHANGELOG.md
+git diff d34aacf6ec1de4c208a64c9e245742cd848b5a32..origin/dev -- src/ README.md CHANGELOG.md
 ```
 
 Review the diff for: new/removed exports (need new/removed API reference pages), changed method
@@ -60,7 +59,7 @@ main documentation.
 | Field | Value |
 |---|---|
 | Source files | `/Users/ehanoglu/dev/oslib/postgrejs/doc/BENCHMARKS.md` (Node), `doc/BENCHMARKS-bun.md` (Bun) |
-| Source commit at last copy | `1a4e5df9c789596b0fb8a0dfc5702ceee2fe20bd` |
+| Source commit at last copy | `d34aacf6ec1de4c208a64c9e245742cd848b5a32` |
 | Node run date (from the report itself) | 2026-10-05T17:29:57.699Z |
 | Bun run date (from the report itself) | 2026-10-05T17:29:57.704Z |
 | Library versions in that run | PostgreJS 3.12.0, pg 8.23.0, postgres 3.4.9, Bun.sql 1.4.2 (Bun report only) |

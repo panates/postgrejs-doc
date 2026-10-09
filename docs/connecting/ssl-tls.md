@@ -27,6 +27,10 @@ const connection = new Connection({
 await connection.connect();
 ```
 
+:::note On Cloudflare Workers
+Workerd can't be told which certificate to trust, so `ca`, `cert` and `rejectUnauthorized` are ignored there, and `sslNegotiation: 'direct'` and `channelBinding: 'require'` are refused. See [Cloudflare Workers](./cloudflare-workers.md#tls).
+:::
+
 Set `requireSSL: true` to fail the connection outright if the server refuses TLS, instead of silently falling back to a plaintext session.
 
 ## `sslNegotiation`
