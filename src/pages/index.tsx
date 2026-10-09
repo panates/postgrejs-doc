@@ -225,7 +225,6 @@ const RUNTIMES = [
   {
     name: 'Cloudflare Workers',
     href: '/docs/guides/cloudflare-workers',
-    badge: 'Next release',
     description: 'With nodejs_compat — TLS through the runtime’s own socket, or Hyperdrive for everything else.',
     logo: <img src="/img/cloudflare-logo.svg" alt="Cloudflare Workers" className={styles.integrationLogo} />,
   },
@@ -413,7 +412,6 @@ function Runtimes() {
         <div className={styles.integrationsGrid}>
           {RUNTIMES.map(r => (
             <Link key={r.name} to={r.href} className={styles.integrationCard}>
-              {r.badge && <span className={styles.integrationBadge}>{r.badge}</span>}
               <div className={styles.integrationLogoWrap}>{r.logo}</div>
               <h3 className={styles.integrationTitle}>{r.name}</h3>
               <p className={styles.integrationDesc}>{r.description}</p>

@@ -9,10 +9,8 @@ postgrejs runs on [Cloudflare Workers](https://workers.cloudflare.com) with noth
 the package itself and no build step of its own: the `nodejs_compat` flag supplies `node:net`,
 `node:crypto` and the rest, and the client uses them exactly as it does on Node.js.
 
-:::caution Not in a published release yet
-Everything on this page describes work in the `postgrejs` repository's `dev` branch, after
-**3.13.0**, the latest release at the time of writing. Until the next release is published,
-`npm install postgrejs` will not give you the Workers support described here.
+:::info Since 3.14.0
+Cloudflare Workers support is in postgrejs **3.14.0** and later.
 :::
 
 Everything below was measured by the maintainers on **workerd via `wrangler dev`**, against
