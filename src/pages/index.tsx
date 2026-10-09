@@ -209,6 +209,28 @@ const BEFORE_AFTER = [
   },
 ];
 
+const RUNTIMES = [
+  {
+    name: 'Node.js',
+    href: '/docs/getting-started/benchmarks',
+    description: 'Node 20, 22, 24 and 26 in CI on every push, each against PostgreSQL 12, 16 and 18.',
+    logo: <img src="/img/nodejs-logo.svg" alt="Node.js" className={styles.integrationLogo} />,
+  },
+  {
+    name: 'Bun',
+    href: '/docs/getting-started/benchmarks-bun',
+    description: 'The same test suite runs under Bun in CI against PostgreSQL 18 — a supported target, not a coincidence.',
+    logo: <img src="/img/bun-logo.svg" alt="Bun" className={styles.integrationLogo} />,
+  },
+  {
+    name: 'Cloudflare Workers',
+    href: '/docs/guides/cloudflare-workers',
+    badge: 'Next release',
+    description: 'With nodejs_compat — TLS through the runtime’s own socket, or Hyperdrive for everything else.',
+    logo: <img src="/img/cloudflare-logo.svg" alt="Cloudflare Workers" className={styles.integrationLogo} />,
+  },
+];
+
 function Hero() {
   return (
     <header className={styles.hero}>
@@ -380,6 +402,29 @@ function Integrations() {
   );
 }
 
+function Runtimes() {
+  return (
+    <section className={styles.runtimes}>
+      <div className="container">
+        <div className={styles.comparisonHeader}>
+          <h2>Runs where you run</h2>
+          <p>One package, no native bindings — the same client on every runtime below.</p>
+        </div>
+        <div className={styles.integrationsGrid}>
+          {RUNTIMES.map(r => (
+            <Link key={r.name} to={r.href} className={styles.integrationCard}>
+              {r.badge && <span className={styles.integrationBadge}>{r.badge}</span>}
+              <div className={styles.integrationLogoWrap}>{r.logo}</div>
+              <h3 className={styles.integrationTitle}>{r.name}</h3>
+              <p className={styles.integrationDesc}>{r.description}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function QuickStart() {
   return (
     <section className={styles.quickStart}>
@@ -404,6 +449,7 @@ export default function Home(): React.JSX.Element {
         <Pillars />
         <CodeExample />
         <Integrations />
+        <Runtimes />
         <Features />
         <Comparison />
         <QuickStart />

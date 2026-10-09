@@ -254,7 +254,7 @@
 
 .features {
   padding: 5rem 0;
-  background: var(--ifm-background-color);
+  background: var(--ifm-background-surface-color);
 }
 
 .sectionTitle {
@@ -274,7 +274,7 @@
   padding: 1.75rem;
   border-radius: 8px;
   border: 1px solid var(--ifm-color-emphasis-200);
-  background: var(--ifm-background-surface-color);
+  background: var(--ifm-background-color);
 }
 
 .featureIcon {
@@ -311,7 +311,7 @@
 
 .comparison {
   padding: 5rem 0;
-  background: var(--ifm-background-surface-color);
+  background: var(--ifm-background-color);
 }
 
 .comparisonHeader {
@@ -369,7 +369,7 @@
   border-radius: 8px;
   border: 1px solid var(--ifm-color-emphasis-200);
   margin-bottom: 0.75rem;
-  background: var(--ifm-background-color);
+  background: var(--ifm-background-surface-color);
 }
 
 .compareCell p {
@@ -381,7 +381,7 @@
 
 .compareCellAfter {
   border-color: var(--ifm-color-primary-lightest, #cce0ff);
-  background: color-mix(in srgb, var(--ifm-color-primary) 5%, var(--ifm-background-surface-color));
+  background: color-mix(in srgb, var(--ifm-color-primary) 5%, var(--ifm-background-color));
 }
 
 .compareCellAfter p {
@@ -517,11 +517,22 @@
   }
 }
 
+/* ─── Runtimes ──────────────────────────────────────────────────────────────── */
+
+.runtimes {
+  padding: 5rem 0;
+  background: var(--ifm-background-color);
+}
+
+.runtimes .integrationCard {
+  background: var(--ifm-background-surface-color);
+}
+
 /* ─── Quick start ───────────────────────────────────────────────────────────── */
 
 .quickStart {
   padding: 5rem 0;
-  background: var(--ifm-background-color);
+  background: var(--ifm-background-surface-color);
 }
 
 .quickStartInner {

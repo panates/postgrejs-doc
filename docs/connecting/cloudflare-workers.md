@@ -16,7 +16,7 @@ Everything on this page describes work in the `postgrejs` repository's `dev` bra
 :::
 
 Everything below was measured by the maintainers on **workerd via `wrangler dev`**, against
-PostgreSQL 18.
+PostgreSQL 18 — by hand: unlike Node.js and Bun, Workers isn't in the CI test matrix yet.
 
 ## Setup
 

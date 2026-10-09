@@ -10,7 +10,7 @@ sidebar_position: 2
 - **Strictly typed** — Written entirely in TypeScript, with types shipped alongside the package.
 - **Modern module format** — Ships as ESM; Node 20.19+/22.12+ can `require()` it from CommonJS code as well.
 - **Promise-based API** — Every asynchronous operation returns a promise, no callbacks to wrangle.
-- **Rigorously tested** — A test suite covering the wire protocol, every data type, and connection-handling edge case, run on every push against PostgreSQL 12 through 18.
+- **Rigorously tested** — A test suite covering the wire protocol, every data type, and connection-handling edge case, run on every push across Node 20, 22, 24 and 26 against PostgreSQL 12, 16 and 18, and under Bun against 18.
 
 ## Features
 
