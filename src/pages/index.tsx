@@ -140,7 +140,15 @@ const FEATURES = [
   },
 ];
 
-const INTEGRATIONS = [
+type Integration = {
+  name: string;
+  href: string;
+  description: string;
+  logo: React.ReactNode;
+  comingSoon?: boolean;
+};
+
+const INTEGRATIONS: Integration[] = [
   {
     name: 'SQB',
     href: '/docs/integrations/sqb',
