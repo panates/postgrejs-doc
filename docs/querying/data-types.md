@@ -17,7 +17,7 @@ postgrejs decodes every PostgreSQL wire value into a native JS type through a `D
 | Postgres type | JS type | Notes |
 | :--- | :--- | :--- |
 | `bool` | `boolean` | |
-| `bytea` | `Buffer` | |
+| `bytea` | `Buffer` | Read back as a `Buffer`. A value you send may be any `ArrayBuffer` view — a `Buffer`, a `Uint8Array` (off `fetch` or `subarray()`), a `DataView` — and only the bytes that view covers are sent, so a `subarray()` of a larger buffer sends just its window. Before 3.14.1 only a `Buffer` was accepted. |
 | `char` | `string` | single-byte "char" type |
 | `bpchar` | `string` | blank-padded `character(n)` |
 | `name` | `string` | |

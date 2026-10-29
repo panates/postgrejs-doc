@@ -150,14 +150,26 @@ connection-level) option on a bare `Connection` — where it means the opposite 
 `Pool`. A `Connection`'s concurrent `query()` calls have always pipelined on their own wire (that's
 what gives a burst on one connection roughly a 6x speedup over running it sequentially); `pipeline:
 false` there is the opt-*out*, claiming the wire so a statement waits for the connection to go idle
-and everything queued behind it waits too. Reach for it when a statement depends on session state
-another one leaves behind — a `SET`, an advisory lock, a temporary table — since nothing orders two
-pipelined statements against each other:
+and everything queued behind it waits too.
+
+Pipelined statements on one connection run in the order they were submitted, so a statement that
+depends on an earlier one doesn't need `pipeline: false` to say so. What it's for is a statement that
+needs the connection to itself for longer than the wire — session state another caller would see, or
+a result you have to read before you can decide what to send next:
 
 ```ts
-await connection.query('set search_path to reporting'); // must land before the next line
+// Waits for the connection to go idle; everything submitted after it waits for it
 await connection.query('select * from widgets', { pipeline: false });
 ```
+
+Statements on different pooled connections have no order between them at all.
+
+:::note Since 3.14.1
+Before 3.14.1 a statement that had to wait for its `Parse` round trip could be overtaken by a later
+one whose statement was already cached, so two updates to one row could land in the opposite order —
+and only on a connection whose history happened to make one cached and the other not. If you rely on
+submission order, use 3.14.1 or later.
+:::
 
 ## Reference Counting
 
