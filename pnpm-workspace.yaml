@@ -1,0 +1,3 @@
+# pnpm's default holds back any version published in the last 1440 minutes (24 hours). Off here:
+# a fresh release is installable as soon as it is on the registry.
+minimumReleaseAge: 0
