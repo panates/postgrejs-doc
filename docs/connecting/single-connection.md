@@ -9,7 +9,7 @@ A [`Connection`](../api/classes/connection.md) represents one physical socket to
 lowest-level object in postgrejs — a [`Pool`](../api/classes/pool.md) simply hands out `Connection` instances that
 share the same underlying wiring.
 
-Requires `node >= 20.x`.
+Requires `node >= 22.x`.
 
 ## Creating a Connection
 

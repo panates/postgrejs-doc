@@ -5,7 +5,7 @@ sidebar_position: 1
 # Introduction
 
 **postgrejs** is a PostgreSQL driver for Node.js built from the wire protocol up: no `libpq`, no native
-bindings, just strictly-typed TypeScript talking directly to PostgreSQL. It ships as ESM (Node 20.19+/22.12+
+bindings, just strictly-typed TypeScript talking directly to PostgreSQL. It ships as ESM (Node 22.12+
 can also `require()` it from CommonJS code), exposes a fully promise-based API, and covers everything from a
 single connection to pooling, cursors, COPY streams, logical replication and two-phase commit in one package.
 
@@ -68,7 +68,7 @@ connection pooling, cursors, transactions, and more.
 
 ## Node.js Compatibility
 
-`node >= 20.x` (see the package's `engines` field).
+`node >= 22.x` (see the package's `engines` field).
 
 ## License
 

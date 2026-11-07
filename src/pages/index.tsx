@@ -228,7 +228,7 @@ const RUNTIMES = [
   {
     name: 'Node.js',
     href: '/docs/getting-started/benchmarks',
-    description: 'Node 20, 22, 24 and 26 in CI on every push, each against PostgreSQL 12, 16 and 18.',
+    description: 'Node 22, 24 and 26 in CI on every push, each against PostgreSQL 12, 16 and 18.',
     logo: <img src="/img/nodejs-logo.svg" alt="Node.js" className={styles.integrationLogo} />,
   },
   {
