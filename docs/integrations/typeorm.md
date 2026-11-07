@@ -1,6 +1,12 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
+title: TypeORM
+hide_title: true
 ---
+
+import IntegrationLogo from '@site/src/components/IntegrationLogo';
+
+<IntegrationLogo alt="TypeORM" light="/img/typeorm-full-light.svg" dark="/img/typeorm-full-dark.png" />
 
 # TypeORM
 

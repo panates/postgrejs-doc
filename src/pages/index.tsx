@@ -148,45 +148,52 @@ type Integration = {
   comingSoon?: boolean;
 };
 
+// A card's logo is the project's full logo, name included, so the card carries no separate title.
+const fullLogo = (alt: string, light: string, dark: string) => (
+  <ThemedImage alt={alt} className={styles.integrationLogo} sources={{ light, dark }} />
+);
+
 const INTEGRATIONS: Integration[] = [
   {
     name: 'SQB',
     href: '/docs/integrations/sqb',
     description: "Panates' own multi-dialect ORM and query builder — its PostgreSQL adapter is built directly on postgrejs.",
-    logo: <img src="/img/sqb-logo.svg" alt="SQB" className={styles.integrationLogo} />,
+    logo: fullLogo('SQB', '/img/sqb-full-light.svg', '/img/sqb-full-dark.svg'),
+  },
+  {
+    name: 'Joist',
+    href: '/docs/integrations/joist',
+    description: "Joist 2.5 ships a postgrejs driver of its own, which keeps each row undecoded until an entity reads it.",
+    logo: fullLogo('Joist', '/img/joist-full-light.svg', '/img/joist-full-dark.svg'),
   },
   {
     name: 'Kysely',
     href: '/docs/integrations/kysely',
     description: 'A type-safe SQL query builder — run it on postgrejs instead of pg with a drop-in dialect.',
-    logo: <img src="/img/kysely-logo.svg" alt="Kysely" className={styles.integrationLogo} />,
+    logo: (
+      <span className={styles.integrationLockup}>
+        <img src="/img/kysely-logo.svg" alt="" className={styles.integrationLogo} />
+        <span className={styles.integrationLockupName}>Kysely</span>
+      </span>
+    ),
   },
   {
     name: 'Drizzle ORM',
     href: '/docs/integrations/drizzle',
     description: 'A lightweight TypeScript ORM — schema, relational queries and migrations on postgrejs.',
-    logo: (
-      <ThemedImage
-        alt="Drizzle ORM"
-        className={styles.integrationLogo}
-        sources={{
-          light: '/img/drizzle-logo-light.svg',
-          dark: '/img/drizzle-logo-dark.svg',
-        }}
-      />
-    ),
+    logo: fullLogo('Drizzle ORM', '/img/drizzle-logo-light.svg', '/img/drizzle-logo-dark.svg'),
   },
   {
     name: 'TypeORM',
     href: '/docs/integrations/typeorm',
     description: 'A pg-compatible facade — bring postgrejs to TypeORM by changing one line.',
-    logo: <img src="/img/typeorm-icon.png" alt="TypeORM" className={styles.integrationLogo} />,
+    logo: fullLogo('TypeORM', '/img/typeorm-full-light.svg', '/img/typeorm-full-dark.png'),
   },
   {
     name: 'Prisma',
     href: '/docs/integrations/prisma',
     description: 'A driver adapter — run a Prisma schema on postgrejs instead of pg.',
-    logo: <img src="/img/prisma-icon.svg" alt="Prisma" className={styles.integrationLogo} />,
+    logo: fullLogo('Prisma', '/img/prisma-full-light.svg', '/img/prisma-full-dark.svg'),
   },
 ];
 
@@ -389,7 +396,6 @@ function Integrations() {
               <>
                 {i.comingSoon && <span className={styles.integrationBadge}>Coming soon</span>}
                 <div className={styles.integrationLogoWrap}>{i.logo}</div>
-                <h3 className={styles.integrationTitle}>{i.name}</h3>
                 <p className={styles.integrationDesc}>{i.description}</p>
               </>
             );

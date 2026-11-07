@@ -1,0 +1,28 @@
+/* The logo that opens each ORM integration page: centered, one height for all six. */
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.5rem 0 2rem;
+}
+
+.full {
+  height: 88px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.icon {
+  height: 88px;
+  width: auto;
+}
+
+.name {
+  font-size: 3.25rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--ifm-heading-color);
+}
