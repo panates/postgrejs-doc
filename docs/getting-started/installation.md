@@ -12,7 +12,7 @@ npm install postgrejs
 
 ## Requirements
 
-- `node >= 20.x` — the test suite runs in CI on every push across Node 20, 22, 24 and 26, each against
+- `node >= 22.x` — the test suite runs in CI on every push across Node 22, 24 and 26, each against
   PostgreSQL 12, 16 and 18.
 - Bun — the same test suite runs under Bun in CI against PostgreSQL 18 on every push, so it's a supported
   runtime rather than an untested coincidence.
@@ -22,7 +22,7 @@ npm install postgrejs
 
 ## Module format
 
-postgrejs ships as an ES module (`"type": "module"`). Node 20.19+ and 22.12+ support `require()`-ing an ESM
+postgrejs ships as an ES module (`"type": "module"`). Node 22.12+ supports `require()`-ing an ESM
 package directly from CommonJS code, so you can use either `import` or `require()` depending on your project's
 module system:
 
@@ -32,11 +32,11 @@ import { Connection } from 'postgrejs';
 ```
 
 ```js
-// CommonJS (Node 20.19+ / 22.12+)
+// CommonJS (Node 22.12+)
 const { Connection } = require('postgrejs');
 ```
 
-On older Node 20/22 releases that don't support requiring ESM, import postgrejs from an ESM entry point (e.g. a
+On Node 22 releases before 22.12 that don't support requiring ESM, import postgrejs from an ESM entry point (e.g. a
 dynamic `import()`, or a project configured with `"type": "module"`).
 
 Next, see [Single Connection](../connecting/single-connection.md) to open your first connection.

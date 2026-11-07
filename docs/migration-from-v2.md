@@ -61,9 +61,9 @@ const MyType: DataType = {
 
 v3 relicenses the project from MIT to **BSD-3-Clause**. Both are permissive licenses; the practical difference is that BSD-3-Clause requires the copyright notice to be preserved in redistributions. Check your organization's license-compliance policy if it tracks dependency licenses. See [License](./license.md).
 
-### Node engine bumped to `>=20`
+### Node engine bumped
 
-v3 requires `node >= 20.x`. See [Installation](./getting-started/installation.md).
+v3 started at `node >= 20.x`; since 3.14.2 postgrejs requires `node >= 22.x`. See [Installation](./getting-started/installation.md).
 
 ## New in v3
 

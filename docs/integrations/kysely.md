@@ -1,6 +1,12 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
+title: Kysely
+hide_title: true
 ---
+
+import IntegrationLogo from '@site/src/components/IntegrationLogo';
+
+<IntegrationLogo alt="Kysely" icon="/img/kysely-logo.svg" name="Kysely" />
 
 # Kysely
 

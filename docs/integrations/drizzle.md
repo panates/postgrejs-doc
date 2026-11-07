@@ -1,6 +1,12 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
+title: Drizzle ORM
+hide_title: true
 ---
+
+import IntegrationLogo from '@site/src/components/IntegrationLogo';
+
+<IntegrationLogo alt="Drizzle ORM" light="/img/drizzle-logo-light.svg" dark="/img/drizzle-logo-dark.svg" />
 
 # Drizzle ORM
 

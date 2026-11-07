@@ -77,7 +77,7 @@ the same pattern works unchanged:
 
 `using`/`await using` needs TypeScript 5.2 or later to compile, targeting a runtime with `Symbol.asyncDispose`
 available. postgrejs polyfills `Symbol.asyncDispose` itself if the runtime doesn't provide it natively, so the
-pattern works across supported Node versions (`node >= 20.x`) without any extra setup.
+pattern works across supported Node versions (`node >= 22.x`) without any extra setup.
 
 ## See Also
 

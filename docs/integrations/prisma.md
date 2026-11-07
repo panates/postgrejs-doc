@@ -1,6 +1,12 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
+title: Prisma
+hide_title: true
 ---
+
+import IntegrationLogo from '@site/src/components/IntegrationLogo';
+
+<IntegrationLogo alt="Prisma" light="/img/prisma-full-light.svg" dark="/img/prisma-full-dark.svg" />
 
 # Prisma
 

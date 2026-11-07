@@ -1,6 +1,12 @@
 ---
 sidebar_position: 1
+title: SQB
+hide_title: true
 ---
+
+import IntegrationLogo from '@site/src/components/IntegrationLogo';
+
+<IntegrationLogo alt="SQB" light="/img/sqb-full-light.svg" dark="/img/sqb-full-dark.svg" />
 
 # SQB
 

@@ -8,9 +8,9 @@ sidebar_position: 2
 
 - **Language** — Pure JavaScript, with no native/binary dependencies to compile or ship.
 - **Strictly typed** — Written entirely in TypeScript, with types shipped alongside the package.
-- **Modern module format** — Ships as ESM; Node 20.19+/22.12+ can `require()` it from CommonJS code as well.
+- **Modern module format** — Ships as ESM; Node 22.12+ can `require()` it from CommonJS code as well.
 - **Promise-based API** — Every asynchronous operation returns a promise, no callbacks to wrangle.
-- **Rigorously tested** — A test suite covering the wire protocol, every data type, and connection-handling edge case, run on every push across Node 20, 22, 24 and 26 against PostgreSQL 12, 16 and 18, and under Bun against 18.
+- **Rigorously tested** — A test suite covering the wire protocol, every data type, and connection-handling edge case, run on every push across Node 22, 24 and 26 against PostgreSQL 12, 16 and 18, and under Bun against 18.
 
 ## Features
 
@@ -52,7 +52,7 @@ sidebar_position: 2
 
 ## Feature Comparison
 
-How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js) — versions compared: **postgrejs 3.14.1, pg 8.23.0, postgres.js 3.4.9**. ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
+How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js) — versions compared: **postgrejs 3.14.2, pg 8.23.0, postgres.js 3.4.9**. ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
 
 | Feature | postgrejs | pg | postgres.js |
 |:---|:---:|:---:|:---:|
