@@ -83,7 +83,7 @@ assumed and is left untouched by `close()` - it can be resumed later. When
 this instance did create the slot, `close()` drops it again if it was
 temporary (the server does this on disconnect for a slot created without a
 name), or explicitly issues `DROP_REPLICATION_SLOT` if it created a
-permanent one with an auto-generated name (there being no way to reference
+permanent one with an auto-generated name (since nothing could reference
 it again otherwise). In short: give an explicit `slot` name and leave
 `permanent` unset/`true` if you want the slot to survive across runs.
 

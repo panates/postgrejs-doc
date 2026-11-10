@@ -8,7 +8,7 @@ A named, server-side prepared statement created by [Connection.prepare()](./conn
 
 ## Constructor / static factory
 
-The public entry point is the static `prepare()` factory, used internally by `Connection.prepare()` — you normally never call either directly, and instead call `connection.prepare(sql, options)`.
+The public entry point is the static `prepare()` factory, used internally by `Connection.prepare()`. You normally never call either directly; call `connection.prepare(sql, options)` instead.
 
 `PreparedStatement.prepare(connection: Connection, sql: string, options?: StatementPrepareOptions): Promise<PreparedStatement>`
 
@@ -54,9 +54,9 @@ const statement = await connection.prepare('insert into t(v) values($1)');
 statement.resolvedParamTypes; // [21] — int2, if t.v is an int2 column
 ```
 
-Useful for two things: it says what a parameter with no context became — `prepare('select $1')`
+It is useful for two things. It says what a parameter with no context became: `prepare('select $1')`
 resolves to `text`, which is the whole explanation for an untyped array coming back as an array
-literal there — and it names the type to hand a [`BindParam`](./bind-param.md) for a caller who
+literal there. It also names the type to hand a [`BindParam`](./bind-param.md) for a caller who
 wants the binary encoding back that [an untyped numeric array gives up](../../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified).
 `undefined` until the statement has actually been prepared.
 
@@ -103,7 +103,7 @@ below.
 
 ### executeBatch()
 
-Runs the statement once per parameter set, sending every `Bind`/`Execute` before waiting on any of them and closing the whole batch with a single `Sync` — the sets share one implicit transaction (unless one is already open) and a rejected set stops the ones behind it from running.
+Runs the statement once per parameter set, sending every `Bind`/`Execute` before waiting on any of them and closing the whole batch with a single `Sync`. The sets share one implicit transaction (unless one is already open), and a rejected set stops the ones behind it from running.
 
 `executeBatch(paramSets: any[][], options?: QueryOptions): Promise<BatchResult>`
 

@@ -43,9 +43,9 @@ are not the same subscription: an unquoted identifier is folded to lower
 case by the server, so both `LISTEN Foo` and `NOTIFY Foo` really mean
 `foo`. `listen()`/`unListen()` fold a name the same way whenever it looks
 like it could have been written unquoted, so the key your callback is
-registered under and the name the server reports back always match — a
-mixed-case channel used to be accepted but never actually delivered
-anything, since the callback was keyed on the original casing while every
+registered under and the name the server reports back always match. A
+mixed-case channel used to be accepted but never delivered
+anything, because the callback was keyed on the original casing while every
 incoming notification arrived as the folded one:
 
 ```ts
@@ -53,8 +53,8 @@ await connection.listen('MyChannel', msg => console.log(msg.payload));
 await connection.query(`NOTIFY MyChannel, 'hi'`); // folds to 'mychannel' too - delivers
 ```
 
-A name that could not have been written unquoted (spaces, punctuation) has
-no folding question to answer and is passed through, quoted, exactly as
+A name that could not have been written unquoted (spaces, punctuation) is
+not folded; it is passed through, quoted, exactly as
 given.
 
 To stop receiving notifications:
@@ -99,8 +99,8 @@ callbacks only fire for their own channel.
 
 ## Listening on a Pool
 
-Calling `pool.listen()` does not borrow one of the pool's regular connections
-- it opens and keeps one dedicated internal `Connection` just for `LISTEN`,
+Calling `pool.listen()` does not borrow one of the pool's regular connections:
+it opens and keeps one dedicated internal `Connection` just for `LISTEN`,
 created lazily the first time `listen()` is called. That connection is
 separate from `acquire()`/`release()` traffic, so subscriptions survive
 however many queries the rest of the pool runs; you do not need to keep a

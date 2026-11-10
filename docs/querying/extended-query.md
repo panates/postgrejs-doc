@@ -113,13 +113,13 @@ omitting it.
 
 ## Cursors
 
-Pass `cursor: true` to get back a [`Cursor`](../api/classes/cursor.md) instead of eagerly buffering every row — essential for large result sets. See [Cursors](./cursors.md).
+Pass `cursor: true` to get back a [`Cursor`](../api/classes/cursor.md) instead of eagerly buffering every row. Large result sets need one. See [Cursors](./cursors.md).
 
 ## Automatic Statement Caching
 
-`query()`/`execute()` reuse a server-side prepared statement for SQL a connection has already run, instead of parsing it again every time — turning a repeated query from `Parse`/`Bind`/`Describe`/`Execute` into `Bind`/`Execute`. This is separate from — and happens underneath — the explicit [`connection.prepare()`](./prepared-statements.md) API; you don't have to opt in, and there's no `PreparedStatement` object to manage.
+`query()`/`execute()` reuse a server-side prepared statement for SQL a connection has already run, instead of parsing it again every time, so a repeated query sends `Bind`/`Execute` instead of `Parse`/`Bind`/`Describe`/`Execute`. This is separate from the explicit [`connection.prepare()`](./prepared-statements.md) API and happens underneath it; you don't have to opt in, and there's no `PreparedStatement` object to manage.
 
-Nothing is cached the first time a piece of SQL text is seen — a query that only ever runs once costs exactly what it always did. The *second* call with the same SQL text is what gets a server-side name and starts being reused — including a second call that arrives while the first is still preparing, in a burst: only one of them claims the name, so a burst of the same statement never leaves the others' prepared statements orphaned on the server:
+Nothing is cached the first time a piece of SQL text is seen, so a query that only ever runs once costs exactly what it always did. The *second* call with the same SQL text is what gets a server-side name and starts being reused — including a second call that arrives while the first is still preparing, in a burst: only one of them claims the name, so a burst of the same statement never leaves the others' prepared statements orphaned on the server:
 
 ```ts
 await connection.query('select * from customers where id = $1', { params: [1] }); // Parse + Bind + Describe + Execute
@@ -143,10 +143,7 @@ outside one. When [`rollbackOnError`](../transactions/transactions-and-savepoint
 also applies, a cached statement's `SAVEPOINT`/`RELEASE` pair rides along in
 the same round trip instead of costing one each.
 
-The cache is bounded per connection: `preparedStatementCacheSize` (default `64`) caps how many statements it holds, evicting the least-recently-used one — closing it server-side — once full, so an application that builds SQL text dynamically can't accumulate statements on the server without limit. A cached plan that's invalidated underneath it is dropped from the cache automatically and the query re-runs unprepared, recovering instead of failing every call from then on — whether that's an `ALTER TABLE` between two calls (`0A000`, "cached plan must not change result type") or a type the statement refers to being dropped and recreated (`XX000`, "cache lookup failed for type ..."). Only those two SQLSTATEs retire the entry; an ordinary error (a unique violation on a hot upsert, say) leaves a perfectly good prepared statement in the cache.
-
-Scoped to the one-shot path `query()`/`execute()` use outside an explicit transaction; a call inside `startTransaction()`/`commit()` still prepares and closes per call.
-
+The cache is bounded per connection: `preparedStatementCacheSize` (default `64`) caps how many statements it holds, evicting (and closing server-side) the least-recently-used one once full, so an application that builds SQL text dynamically can't accumulate statements on the server without limit. A cached plan that's invalidated underneath it is dropped from the cache automatically and the query re-runs unprepared, so it recovers instead of failing every call from then on. That covers both an `ALTER TABLE` between two calls (`0A000`, "cached plan must not change result type") and a type the statement refers to being dropped and recreated (`XX000`, "cache lookup failed for type ..."). Only those two SQLSTATEs retire the entry; an ordinary error (a unique violation on a hot upsert, say) leaves a perfectly good prepared statement in the cache.
 ## Multi-Statement Pipelines
 
 `connection.pipeline(requests, options?)` runs several *different* statements in one round trip: every `Parse`/`Bind`/`Describe`/`Execute` goes out before any response is waited for, and a single `Sync` closes the lot. It's the counterpart to [`PreparedStatement.executeBatch()`](./prepared-statements.md#batch-execution), which runs one statement over many parameter sets — `pipeline()` runs many different statements once each:

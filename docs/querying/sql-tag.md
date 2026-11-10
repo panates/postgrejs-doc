@@ -91,7 +91,7 @@ sql`select ${[1, 2]}`.stringify();      // "select '{"1","2"}'"
 await connection.execute(sql`select * from accounts where id = ${accountId}`);
 ```
 
-Most values get an explicit cast — `'42'::int4`, `'t'::bool` — encoded through the same type map
+Most values get an explicit cast (`'42'::int4`, `'t'::bool`), encoded through the same type map
 `query()` uses, so the two paths agree on how a value is represented. A `string`, a `Date`, and an
 array of numbers/`bigint`s/strings/`Date`s are the exception: like their parameter forms (see
 [Strings, Dates, and numeric arrays go out unspecified](./query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified)),

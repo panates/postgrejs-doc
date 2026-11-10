@@ -5,8 +5,8 @@ sidebar_position: 13
 # Numeric
 
 The exact decimal a `numeric` column holds, for values a JavaScript `number` cannot carry without
-losing digits. `numeric` decodes to a plain `number` whenever a double round-trips it faithfully —
-prints back the same digits — and to a `Numeric` instance otherwise, the same contract `int8` has
+losing digits. `numeric` decodes to a plain `number` whenever a double round-trips it faithfully
+(prints back the same digits), and to a `Numeric` instance otherwise, the same contract `int8` has
 with `number`/`BigInt`. See [Data Types & Type Mapping](../../querying/data-types.md#numeric-exact-decimals)
 for when each happens and why.
 
@@ -37,14 +37,14 @@ r.rows[0][0].toNumber();         // 12345678901234568 - lossy, on purpose
 |:---|:---|:---|
 | `toString()` | `string` | The exact decimal; casts back through `::numeric` |
 | `toPostgres()` | `string` | Same as `toString()` — the `pg`-convention name for "write yourself back" |
-| `toJSON()` | `string` | Same as `toString()` — unlike the other value classes, `Numeric` wraps a single decimal, so its JSON value is that string, not `{"value":"..."}` |
+| `toJSON()` | `string` | Same as `toString()`. Unlike the other value classes, `Numeric` wraps a single decimal, so its JSON value is that string, not `{"value":"..."}` |
 | `toNumber()` | `number` | The value as a double — lossy, which is the point of this class |
 
 There is deliberately no `valueOf()`. `Numeric` implements `Symbol.toPrimitive`, returning the
-exact text for every hint — so `String(n)`/`` `${n}` `` are lossless, and `n + 1` concatenates
+exact text for every hint, so `String(n)`/`` `${n}` `` are lossless, and `n + 1` concatenates
 rather than silently rounding through an implicit number coercion. Reach for `toNumber()` when a
 lossy double is actually what's wanted.
 
 `Numeric` is a class rather than a bare string so it can be told apart from one: `determine()`
-types a bare string as `varchar`, which PostgreSQL then refuses to store in a `numeric` column — a
+types a bare string as `varchar`, which PostgreSQL then refuses to store in a `numeric` column. A
 `Numeric` round-trips as a parameter the same way it decoded.

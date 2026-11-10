@@ -8,6 +8,6 @@ Return value of [`Connection.callFunction()`](../classes/connection.md#callfunct
 
 | Key      | Type            | Description                                                                                    |
 |----------|-----------------|--------------------------------------------------------------------------------------------------|
-| `result` | `Buffer \| null` | The function's return value, in the wire format requested via `FunctionCallOptions.resultFormat` — `null` if it returned SQL `NULL`. |
+| `result` | `Buffer \| null` | The function's return value, in the wire format requested via `FunctionCallOptions.resultFormat`, or `null` if it returned SQL `NULL`. |
 
 See the [Function Call Protocol](../../realtime/function-call.md) guide for usage.

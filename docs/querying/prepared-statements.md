@@ -105,8 +105,8 @@ try {
 ```
 
 Collapsing per-set `Sync` into one is the whole mechanism, and it's substantial: 1000 updates through a loop
-of `execute()` calls took 194ms in the project's own benchmark, against 21ms through `executeBatch()` — with
-socket reads dropping from 972 to 3.
+of `execute()` calls took 194ms in the project's own benchmark, against 21ms through `executeBatch()`, and
+socket reads dropped from 972 to 3.
 
 That single `Sync` has three consequences, and they're why this is a separate method instead of an option on
 `execute()`:

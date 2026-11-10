@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Pool
 
-Manages a pool of pooled connections to a PostgreSQL server (built on top of [`lightning-pool`](https://www.npmjs.com/package/lightning-pool)). `Pool.query()`/`Pool.execute()` acquire a connection, run the statement, and release the connection back automatically — call [acquire()](#acquire) directly when you need to hold a connection across several statements (e.g. a transaction).
+Manages a pool of pooled connections to a PostgreSQL server (built on top of [`lightning-pool`](https://www.npmjs.com/package/lightning-pool)). `Pool.query()`/`Pool.execute()` acquire a connection, run the statement, and release the connection back automatically. Call [acquire()](#acquire) directly when you need to hold a connection across several statements (e.g. a transaction).
 
 ## Constructor
 
@@ -135,8 +135,8 @@ console.log(result.rows);
 Acquires a connection, runs `fn` inside a transaction on it via
 [`Connection.transaction()`](./connection.md#transaction), and releases the
 connection back to the pool however that ends. A transaction can't be
-spread across separate `Pool.query()` calls — each is free to land on a
-different connection — so this is how several statements share one.
+spread across separate `Pool.query()` calls, because each is free to land on a
+different connection; this method is how several statements share one.
 
 `transaction<T>(fn: (connection: Connection) => Promise<T>, options?: TransactionOptions): Promise<T>`
 
@@ -232,7 +232,7 @@ Two unrelated situations share this event, told apart by their shape:
 
 `(err: Error, info: { requestTime: number; tries: number; maxRetries: number }) => void` — the pool failed to create a new connection (e.g. during `acquire()`'s retry loop).
 
-`(err: ConnectionLostError) => void` — a pooled connection died rather than being evicted normally; also reported on [`destroy`](#destroy) as its `reason`. Emitted with no second argument, which is what keeps the two cases unambiguous — check for `info` or `err.code === '08006'`.
+`(err: ConnectionLostError) => void` — a pooled connection died rather than being evicted normally; also reported on [`destroy`](#destroy) as its `reason`. Emitted with no second argument, which is what keeps the two cases unambiguous: check for `info` or `err.code === '08006'`.
 
 | Argument | Type | Default | Description |
 |----------|------|---------|--------------|
@@ -248,7 +248,7 @@ pool.on('error', (err, info) => {
 
 ### notice
 
-Triggered whenever a pooled connection receives a `NoticeResponse` — a `RAISE NOTICE`, or PostgreSQL's own "table does not exist, skipping" from `DROP TABLE IF EXISTS`. Named with the connection, the same as [`destroy`](#destroy), since a `pool.query()` caller never holds a `Connection` for a notice raised by their own statement to reach otherwise. Like [`debug`](#debug)/[`execute`](#execute-1)/[`query`](#query-1), only forwarded while something is listening on the pool.
+Triggered whenever a pooled connection receives a `NoticeResponse` — a `RAISE NOTICE`, or PostgreSQL's own "table does not exist, skipping" from `DROP TABLE IF EXISTS`. The event carries the connection, the same as [`destroy`](#destroy), because a `pool.query()` caller never holds a `Connection`, so a notice raised by their own statement could not reach them any other way. Like [`debug`](#debug)/[`execute`](#execute-1)/[`query`](#query-1), only forwarded while something is listening on the pool.
 
 `(msg: DatabaseError, connection: Connection) => void`
 

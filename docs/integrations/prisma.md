@@ -15,15 +15,15 @@ import IntegrationLogo from '@site/src/components/IntegrationLogo';
 `@prisma/adapter-pg` goes and everything above it stays the same — your schema, your queries, your
 migrations.
 
-It's faster where it counts, and asks the runtime for far less memory doing it. A 4MB `bytea`
-comes back in 50.756 ms against 108.827 ms, and one call allocates 21.6 MB against 69.2 MB — `pg`
-asks for that column as `\x`-prefixed hex, two characters a byte, so it pulls 8.0 MB off the socket
+On large values it is faster and asks the runtime for much less memory. A 4MB `bytea` comes back
+in 50.756 ms against 108.827 ms, and one call allocates 21.6 MB against 69.2 MB. `pg` asks for that
+column as `\x`-prefixed hex, two characters a byte, so it pulls 8.0 MB off the socket
 where this adapter pulls 4.0 MB, then holds it as a string off the JS heap where a heap figure
-alone can't see it. An `int4[]` of 100k values runs 3.28x, at 13.4 MB against 27.3 MB. Ordinary
-queries gain less and gain it repeatably: a point read is the faster of the two in 99 of 101
-alternated pairs. All of it through an unmodified `PrismaClient`, against `@prisma/adapter-pg` on
-the same server in the same run — and two values the reference adapter gets silently wrong come
-back right.
+alone can't see it. An `int4[]` of 100k values runs 3.28x faster, at 13.4 MB against 27.3 MB.
+Ordinary queries gain less, but repeatably: a point read is the faster of the two in 99 of 101
+alternated pairs. All of it was measured through an unmodified `PrismaClient`, against
+`@prisma/adapter-pg` on the same server in the same run. Two values the reference adapter gets
+silently wrong also come back right.
 
 ## Installation
 
@@ -104,22 +104,23 @@ export default defineConfig({
 ## Why
 
 It's a drop-in swap for `@prisma/adapter-pg`: the same `PrismaClient({ adapter })`, the same
-schema, the same queries, the same migrations. What that buys:
+schema, the same queries, the same migrations. The differences:
 
-- **Faster where the payload is large** — 2.14x on a 4MB `bytea`, and 3.28x on a 100k-element
+- It is faster where the payload is large: 2.14x on a 4MB `bytea`, and 3.28x on a 100k-element
   `int4[]` whose values use the whole type, because the values arrive in PostgreSQL's binary format
-  rather than as text to be parsed.
-- **And lighter on the same rows** — one call allocates 21.6 MB against 69.2 MB on that `bytea`,
+  and are not parsed from text.
+- It allocates less on the same rows: one call allocates 21.6 MB against 69.2 MB on that `bytea`,
   and 984 KB against 3.6 MB on an array of 5000 `float8`. On rows too narrow to carry a payload the
   two are within a few percent, and on the smallest of them this adapter asks for slightly more.
-- **Slightly faster on ordinary round trips**, repeatably — statements are prepared and reused
-  without anyone asking for it.
-- **Two values the reference adapter gets wrong** — `timetz` on any offset but zero, and `money`
-  outside a narrow range — come back right. [What changes when you switch](#what-changes-when-you-switch)
+- It is slightly faster on ordinary round trips, repeatably, because statements are prepared and
+  reused without anyone asking for it.
+- Two values the reference adapter gets wrong, `timetz` on any offset but zero and `money` outside
+  a narrow range, come back right. [What changes when you switch](#what-changes-when-you-switch)
   is the full list.
-- **A client that can do what Prisma has no way to ask for** — cursors, `COPY`, `LISTEN`/`NOTIFY`,
-  large objects, logical replication and pipelining, on the same pool your queries use.
-- **Checked against Prisma's own functional suite** — 1251 of its tests pass, with
+- The client underneath can do what Prisma has no way to ask for: cursors, `COPY`,
+  `LISTEN`/`NOTIFY`, large objects, logical replication and pipelining, on the same pool your
+  queries use.
+- It is checked against Prisma's own functional suite: 1251 of its tests pass, with
   `@prisma/adapter-pg` run over the same server in the same invocation as the control.
 
 | Workload | `@prisma/adapter-pg` | `prisma-postgrejs` | Speedup / memory |
@@ -143,12 +144,12 @@ schema, the same queries, the same migrations. What that buys:
 18.6, Node 24.15.0, on loopback. Medians per call; the second figure in each cell is what one call
 asks the runtime for (`heapUsed` and `external` together).
 
-**The gain follows the shape of the workload, not its size.** The same 5000 `float8` values read as
-5000 rows gain 1.39x; packed into one array column in one row, 3.12x — the protocol's per-row cost
-is paid by both adapters, so binary decoding is worth what the rows are wide. Large payloads gain
-most: 2.14x on a 4MB `bytea`, and 3.28x on an `int4[]` of 100k values that use the whole type. And
-once there's more concurrency than pool, up to 2.67x — which is what a web application under load
-actually looks like.
+How much is gained depends on the shape of the workload, not its size. The same 5000 `float8`
+values read as 5000 rows gain 1.39x; packed into one array column in one row, they gain 3.12x. Both
+adapters pay the protocol's per-row cost, so binary decoding gains in proportion to how wide the
+rows are. Large payloads gain most: 2.14x on a 4MB `bytea`, and 3.28x on an `int4[]` of 100k values
+that use the whole type. With more concurrent queries than pool connections the gain is up to
+2.67x, and that is the state a web application under load runs in.
 
 ## How the numbers were measured
 
@@ -195,13 +196,13 @@ closed — so each distinct SQL string is parsed and planned once rather than on
 from the backend: 4 queries through this adapter leave 4 prepared statements behind, and the same 4
 through `@prisma/adapter-pg` leave 0 — a default rather than a limitation, since the reference
 adapter only names a statement when given a `statementNameGenerator`, and without one `pg` sends it
-unnamed and the server parses it again every time. It's what most of the ordinary rows' margin is
-made of.
+unnamed and the server parses it again every time. That accounts for most of the margin on the
+ordinary rows.
 
 Prisma's query engine sits on both sides of every call, so it compresses these ratios rather than
 causing them. Measured again through the `SqlDriverAdapter` alone, on the same SQL the engine
 emits, the 4MB `bytea` is 2.30x and allocates 4.2 MB against 52.0 MB, and the `int4[]` 4.94x. The
-table above is the smaller of the two numbers on purpose — it's the one a caller actually gets.
+table above shows the smaller of the two numbers on purpose, since that is the one a caller gets.
 
 Where Prisma wants PostgreSQL's own text — `numeric`, the date and time family, and their array
 forms — `postgrejs` asks the *server* for it, as a Bind format code, rather than decoding the value
@@ -221,15 +222,15 @@ PostgreSQL 18.4, 191 suite files selected for `provider=postgresql`:
 | Tests | 1251 | 1251 |
 | Passed | 1251 | 1251 |
 
-Same tests, and both pass every one of them — not a single test `prisma-postgrejs` loses that
-`@prisma/adapter-pg` wins. There's no expected-failure list either: the control run measures the
+Both run the same tests and both pass every one of them, so there is no test `prisma-postgrejs`
+loses that `@prisma/adapter-pg` wins. There's no expected-failure list either: the control run measures the
 baseline on the machine it's run on, so that's the only thing the comparison can fail on. Left out
 of the table: 81 more that fail identically on both sides and so judge neither adapter — a local
 clone of the Prisma repository doesn't have the `/client/…` path its inline snapshots were recorded
 against.
 
-On top of that, 360 tests of this package's own — including a differential suite that runs every
-case through `@prisma/adapter-pg` as well and compares the two; every divergence below was found by
+The package also has 360 tests of its own, including a differential suite that runs every case
+through `@prisma/adapter-pg` as well and compares the two. Every divergence below was found by
 running it.
 
 ## What changes when you switch

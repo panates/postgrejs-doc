@@ -175,9 +175,9 @@ submission order, use 3.14.1 or later.
 ## Reference Counting
 
 Each physical connection tracks how many operations are currently running on it (queries, copy streams, prepared
-statement calls, and so on). This internal count is what powers graceful shutdown — both
+statement calls, and so on). Graceful shutdown is built on this internal count: both
 [`Connection.close(terminateWait)`](./single-connection.md#graceful-shutdown) and `Pool.close(terminateWait)` poll it to
-decide whether a connection is still busy — and it is unrelated to how many callers currently hold the connection
+decide whether a connection is still busy. It is unrelated to how many callers currently hold the connection
 checked out from the pool.
 
 Checking a connection in and out of the pool itself works differently: `pool.acquire()` hands out a `Connection`

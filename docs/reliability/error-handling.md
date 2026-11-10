@@ -28,7 +28,7 @@ Errors reported by the server arrive as `DatabaseError` — a subclass of `Error
 | `colNr` | `number` | *(postgrejs-added)* 1-based column number on that line. |
 | `line` | `string` | *(postgrejs-added)* The literal source line the error points to. |
 
-`lineNr`/`colNr`/`line` are populated only for queries submitted through this library's `query()`/`execute()`: postgrejs takes the byte `position` Postgres reports and maps it back to a line/column in the SQL text you passed in, then appends a caret-pointer excerpt to the error message — pinpointing exactly where in your submitted SQL the failure occurred, not just a raw byte offset.
+`lineNr`/`colNr`/`line` are populated only for queries submitted through this library's `query()`/`execute()`: postgrejs takes the byte `position` Postgres reports and maps it back to a line/column in the SQL text you passed in, then appends a caret-pointer excerpt to the error message, so the error shows exactly where in your submitted SQL the failure occurred instead of only a raw byte offset.
 
 ```ts
 import { DatabaseError } from 'postgrejs';
@@ -87,7 +87,7 @@ network fault — as opposed to a `close()` the application itself called. When 
   connection).
 
 `ConnectionLostError.code` is always `'08006'` (`connection_failure`), a value the server itself
-never sends — so branching on `code` reliably tells a lost connection apart from a `DatabaseError`
+never sends, so branching on `code` reliably tells a lost connection apart from a `DatabaseError`
 without an `instanceof` check, which fails across duplicated copies of the package:
 
 ```ts
@@ -102,14 +102,14 @@ try {
 }
 ```
 
-A `close()` *you* called still rejects an in-flight call with a plain `Error('Connection closed')`
-— that case carries no `code`, since nothing was actually lost.
+A `close()` *you* called still rejects an in-flight call with a plain `Error('Connection closed')`;
+that case carries no `code`, since nothing was actually lost.
 
 ## `asyncErrorHandling`
 
 By default (`asyncErrorHandling: true`), postgrejs captures the caller's stack at the moment `query()`/`execute()` is called and splices it onto any error the call rejects with. Without this, an error thrown deep inside the library's protocol-handling code would only carry an internal async stack frame — useful for debugging the driver itself, but useless for finding which line of *your* application issued the failing query.
 
-This costs a measurable amount of CPU when many calls are in flight at once (a burst of pipelined queries on one connection), so it can be disabled — globally via `DatabaseConnectionParams.asyncErrorHandling`, or per call via the same option on `QueryOptions`/`ScriptExecuteOptions` — for benchmarking or in hot paths where the extra stack capture isn't worth it:
+This costs a measurable amount of CPU when many calls are in flight at once (a burst of pipelined queries on one connection). For benchmarking, or in hot paths where the extra stack capture isn't worth it, it can be disabled globally via `DatabaseConnectionParams.asyncErrorHandling`, or per call via the same option on `QueryOptions`/`ScriptExecuteOptions`:
 
 ```ts
 const connection = new Connection({

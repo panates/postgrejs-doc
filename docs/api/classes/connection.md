@@ -33,9 +33,9 @@ A connection acquired from a `Pool` is constructed internally (`new Connection(p
 | inTransaction     | `boolean`                                                             | true     | Returns `true` if the connection is currently in a transaction |
 | state             | `ConnectionState`                                                     | true     | Returns the current state of the connection                |
 | processID         | `number \| undefined`                                                 | true     | Returns the process ID of the current session               |
-| host              | `string \| undefined`                                                 | true     | The host this connection reached — with several hosts configured, the one it ended up on, which `config.host` doesn't say. `undefined` before the connection is opened. Since 3.15.0 |
+| host              | `string \| undefined`                                                 | true     | The host this connection reached. With several hosts configured, this is the one it ended up on, which `config.host` doesn't say. `undefined` before the connection is opened. Since 3.15.0 |
 | port              | `number \| undefined`                                                 | true     | The port of `host`, 5432 unless configured. `undefined` before the connection is opened. Since 3.15.0 |
-| secretKey         | `Buffer \| undefined`                                                 | true     | Returns the secret key of the current session (used for `cancel()`). 4 bytes by default, up to 256 with [`longCancelKey`](../interfaces/database-connection-params.md). Was `number` before v3.1 — a breaking change that came with variable-length keys. |
+| secretKey         | `Buffer \| undefined`                                                 | true     | Returns the secret key of the current session (used for `cancel()`). 4 bytes by default, up to 256 with [`longCancelKey`](../interfaces/database-connection-params.md). Was `number` before v3.1 (a breaking change that came with variable-length keys). |
 | sessionParameters | `Record<string, string>`                                              | true     | Returns the `ParameterStatus` values reported by the server for the current session |
 | runningQueryCount | `number`                                                              | true     | Returns the number of queries currently running on this connection |
 | protocolNegotiation | `NegotiateProtocolVersionMessage \| undefined` | true | The server's `NegotiateProtocolVersion` reply, if it sent one during `connect()`. `undefined` means the server fully recognized everything the startup packet asked for (protocol minor version, any `_pq_.*` options); present only when the server is older/stricter than what was requested. |
@@ -161,7 +161,7 @@ await connection.close();
 
 ### pipeline()
 
-Runs several different statements in one round trip: every Parse/Bind/Describe/Execute goes out before any response is waited for, and a single Sync closes the lot. The statements share one implicit transaction (unless one is already open), and a rejected statement stops the ones behind it from running — the counterpart to [`PreparedStatement.executeBatch()`](./prepared-statement.md#executebatch), which runs one statement over many parameter sets instead.
+Runs several different statements in one round trip: every Parse/Bind/Describe/Execute goes out before any response is waited for, and a single Sync closes the lot. The statements share one implicit transaction (unless one is already open), and a rejected statement stops the ones behind it from running. It is the counterpart to [`PreparedStatement.executeBatch()`](./prepared-statement.md#executebatch), which runs one statement over many parameter sets.
 
 `pipeline(requests: (string | QueryRequest | PipelineRequest)[], options?: QueryOptions): Promise<QueryResult[]>`
 
@@ -342,13 +342,13 @@ Deletes a large object and its data.
 
 ### cancel()
 
-Asks the server to cancel whatever this connection is currently running. Travels on its own short-lived connection. It is a request, not a guarantee — the cancelled call rejects with SQLSTATE `57014` if the server acted on it. Prefer the per-call `signal` option of `query()`/`execute()`, which does this and reports the abort to the right caller.
+Asks the server to cancel whatever this connection is currently running. The request travels on its own short-lived connection. It is a request, not a guarantee: the cancelled call rejects with SQLSTATE `57014` if the server acted on it. Prefer the per-call `signal` option of `query()`/`execute()`, which does this and reports the abort to the right caller.
 
 `cancel(): Promise<void>`
 
 ### callFunction()
 
-The legacy Function Call sub-protocol — calls a function by OID directly, bypassing SQL entirely. Superseded by `SELECT func(...)` over the Simple/Extended Query protocols (what `execute()`/`query()` use, and what every current PostgreSQL client uses exclusively) — kept only for wire-protocol completeness. Arguments and the result travel as raw wire-format bytes, not JS values: the caller is responsible for encoding/decoding them (see a [`DataType`](../interfaces/data-type.md)'s own `encodeBinary`/`decodeBinary` for the format a given OID expects).
+Uses the legacy Function Call sub-protocol to call a function by OID directly, bypassing SQL entirely. That protocol is superseded by `SELECT func(...)` over the Simple/Extended Query protocols (what `execute()`/`query()` use, and what every current PostgreSQL client uses exclusively), and this method is kept only for wire-protocol completeness. Arguments and the result travel as raw wire-format bytes, not JS values: the caller is responsible for encoding/decoding them (see a [`DataType`](../interfaces/data-type.md)'s own `encodeBinary`/`decodeBinary` for the format a given OID expects).
 
 `callFunction(functionId: OID, args: (Buffer | null)[], options?: FunctionCallOptions & { signal?: AbortSignal }): Promise<FunctionCallResult>`
 
@@ -396,7 +396,7 @@ const id = await connection.transaction(async tx => {
 
 ### startTransaction()
 
-Starts a transaction, or — if one is already open — marks a nested level of
+Starts a transaction or, if one is already open, marks a nested level of
 it. Calls are reference-counted: only the outermost call (the one that
 finds the connection not already in a transaction) actually sends `BEGIN`.
 A matching number of [`commit()`](#commit) calls is then needed to actually
@@ -613,7 +613,7 @@ Triggered after the connection's socket has closed.
 
 | Argument | Type | Default | Description |
 |----------|------|---------|--------------|
-| reason | [`ConnectionLostError`](./connection-lost-error.md) |  | Only present when the socket closed on its own — the backend was terminated, a failover, a network fault — rather than because the application called `close()` itself. Whatever query was running at the time rejects with this same object, so a handler that needs both can pair them by identity |
+| reason | [`ConnectionLostError`](./connection-lost-error.md) |  | Only present when the socket closed on its own (the backend was terminated, a failover, a network fault) rather than because the application called `close()` itself. Whatever query was running at the time rejects with this same object, so a handler that needs both can pair them by identity |
 
 ### terminate
 
@@ -629,8 +629,8 @@ Triggered when a pooled connection is returned to its `Pool` by `close()`. Never
 
 ### error
 
-Triggered when the connection's socket closes on its own — killed by an administrator, a failover,
-a network fault — rather than because the application called `close()`. This is where code ported
+Triggered when the connection's socket closes on its own (killed by an administrator, a failover,
+a network fault) rather than because the application called `close()`. This is where code ported
 from `pg` listens, and it's the only report for a connection that had no query running to reject at
 the time; one that did also rejects that call and fires [`'close'`](#close-1) with the same object.
 Safe to leave unhandled: `Connection` drops an `'error'` with no listener instead of throwing.

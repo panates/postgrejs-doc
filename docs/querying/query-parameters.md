@@ -31,7 +31,7 @@ await connection.query('select * from customers where country_code = ANY($1)', {
 `null` is always sent as `NULL` regardless of position.
 
 A `number` is detected by its value: a whole number gets an integer type, and a finite fraction is
-declared `numeric` — not `float8`. The distinction matters where PostgreSQL has a cast from one but
+declared `numeric`, not `float8`. The distinction matters where PostgreSQL has a cast from one but
 not the other: there is an `int4 → money` cast and a `numeric → money` cast, but no `float8 → money`
 at all, so `select ($1::money)::text` works with `12` and, since a fractional amount is `numeric`,
 with `12.34` too (it used to fail with `42846` for the second). A `float8` column is unaffected —
@@ -41,7 +41,7 @@ stay `float8`, which carries all three on every supported server version.
 ## Strings, Dates, and numeric arrays go out unspecified
 
 Three shapes are the exception to automatic type detection: a plain `string`, a `Date`, and an
-array of numbers or `bigint`s (nested arrays included) — and an array of a string or a `Date` —
+array of numbers or `bigint`s (nested arrays included). These, and an array of a string or a `Date`,
 are sent with **no declared type at all**, as text, for PostgreSQL to resolve from whatever the
 parameter's context calls for. Declaring one is actively wrong for all three:
 
@@ -104,11 +104,11 @@ await connection.query('insert into readings (samples) values ($1)', {
 ```
 
 A prepared statement that's already been described knows exactly which type the server resolved
-for a reused parameter — see [`PreparedStatement.resolvedParamTypes`](../api/classes/prepared-statement.md#properties)
-— which is the type to hand `BindParam` here instead of guessing at it.
+for a reused parameter (see [`PreparedStatement.resolvedParamTypes`](../api/classes/prepared-statement.md#properties)),
+which is the type to hand `BindParam` here instead of guessing at it.
 
 This is also what `pg` sends for both, and it costs one specific thing: a parameter with **no
-context to resolve a type from** — `$1 is null`, `array_agg($1)`, `concat($1, 1)` — now raises
+context to resolve a type from** (`$1 is null`, `array_agg($1)`, `concat($1, 1)`) now raises
 `could not determine data type of parameter $1`, exactly as it does under `pg`. A cast (`$1::text`)
 or an explicit `BindParam` (see below) names the type for those:
 
