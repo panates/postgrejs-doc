@@ -49,10 +49,11 @@ sidebar_position: 2
 - **Long Cancel Key** — Opt in to protocol 3.2 (PostgreSQL 18+) with `longCancelKey`, so a `cancel()` in progress can't be forged by an attacker guessing a short secret key. See [Cancellation & Timeouts](../reliability/cancellation.md#long-cancellation-keys-postgresql-18).
 - **Legacy Function Call Protocol** — `callFunction()` calls a function by OID directly over the wire, bypassing SQL entirely, kept for protocol completeness even though `SELECT func(...)` covers the same ground. See [Function Call Protocol](../realtime/function-call.md).
 - **Graceful Protocol Renegotiation** — A server that doesn't recognize a requested protocol version or startup option reports back instead of erroring out, surfaced on `Connection.protocolNegotiation`. See [Cancellation & Timeouts](../reliability/cancellation.md#long-cancellation-keys-postgresql-18).
+- **Observability** — Queries, scripts, prepared statements, pipelines, cursor fetches, COPY, transaction commands, pool acquires and connection attempts are published on Node's `diagnostics_channel`, with five more channels for pool activity; nothing is published while nobody listens. `postgrejs-otel` turns them into OpenTelemetry spans and database client metrics, with an optional sqlcommenter comment that ties a row in `pg_stat_activity` to its trace. Since 3.15.0. See [Tracing Channels](../observability/tracing-channels.md) and [OpenTelemetry](../observability/opentelemetry.md).
 
 ## Feature Comparison
 
-How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js) — versions compared: **postgrejs 3.14.2, pg 8.23.0, postgres.js 3.4.9**. ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
+How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-postgres) and [`postgres`](https://github.com/porsager/postgres) (postgres.js) — versions compared: **postgrejs 3.15.0, pg 8.23.0, postgres.js 3.4.9**. ✅ built in · 🟡 partial or needs a separate package · ❌ not supported.
 
 | Feature | postgrejs | pg | postgres.js |
 |:---|:---:|:---:|:---:|
@@ -119,7 +120,13 @@ How postgrejs compares to [`pg`](https://github.com/brianc/node-postgres) (node-
 | Logical replication | ✅ | 🟡 | ✅ |
 | Large object API | ✅ | ❌ | ✅ |
 | Native libpq bindings | ❌ | 🟡 | ❌ |
+| ***Observability*** | | | |
+| `diagnostics_channel` events | ✅ | ❌ | ✅ |
+| OpenTelemetry instrumentation | ✅ `postgrejs-otel` | 🟡 | ❌ |
+| Spans beyond queries and connects | ✅ | ❌ | ❌ |
+| Database client metrics | ✅ operation and pool | 🟡 | ❌ |
+| Trace context in the SQL comment | ✅ | 🟡 | ❌ |
 
-Every row was checked against each library's own source rather than its documentation. For the full footnotes explaining each 🟡/❌ (e.g. exactly what `pg`'s binary decoder is missing, or why postgres.js has no per-query timeout), see the [Feature Comparison section of the postgrejs README](https://github.com/panates/postgrejs#feature-comparison).
+Every row was checked against each library's own source rather than its documentation. One row looks past the versions above: postgres.js's `diagnostics_channel` events arrived in 4.1.0. For the full footnotes explaining each 🟡/❌ (e.g. exactly what `pg`'s binary decoder is missing, or why postgres.js has no per-query timeout), see the [Feature Comparison section of the postgrejs README](https://github.com/panates/postgrejs#feature-comparison).
 
 For real-world performance numbers backing up "Performance Optimization" above, see [Benchmarks](./benchmarks.md).

@@ -39,6 +39,7 @@ deciding whether it's safe to shut down:
 | `acquiredConnections`  | `number`                                                 | How many connections are currently checked out (in use).        |
 | `idleConnections`      | `number`                                                 | How many connections are open but sitting unused, ready to be handed out. |
 | `totalConnections`     | `number`                                                 | `acquiredConnections + idleConnections` — every connection the pool currently holds open. |
+| `pendingAcquires`      | `number`                                                 | How many callers are waiting for a connection to be free. A caller that gave up after `acquireTimeoutMillis` drops out of the count. Since 3.15.0. |
 
 ```ts
 console.log(`${pool.acquiredConnections}/${pool.totalConnections} connections in use`);

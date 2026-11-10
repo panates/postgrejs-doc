@@ -32,6 +32,7 @@ const pool = new Pool({
 | acquiredConnections | `number`                                                     | true     | Returns the number of connections that are currently acquired              |
 | idleConnections     | `number`                                                     | true     | Returns the number of unused (idle) connections in the pool                |
 | totalConnections    | `number`                                                     | true     | Returns the total number of connections in the pool, idle or in use        |
+| pendingAcquires     | `number`                                                     | true     | Returns how many callers are waiting for a connection to be free; one that gave up after `acquireTimeoutMillis` is no longer counted. Since 3.15.0 |
 
 ## Methods
 

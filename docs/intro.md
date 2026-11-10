@@ -30,6 +30,7 @@ single connection to pooling, cursors, COPY streams, logical replication and two
 - **Cancellation** — every call accepts an `AbortSignal`, including per-query timeouts via `AbortSignal.timeout()`.
 - **Object or array row modes** to suit different data processing needs.
 - **TC39 Explicit Resource Management** — `using`/`await using` for automatic connection and statement cleanup.
+- **Observability** — tracing channels on `diagnostics_channel` for every operation, and OpenTelemetry spans and metrics through `postgrejs-otel`.
 
 ## Why no native bindings
 
