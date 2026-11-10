@@ -29,7 +29,7 @@ See the [Tracing Channels](../../observability/tracing-channels.md) guide for us
 | `connect`          | `postgrejs:connect`           | [`ConnectTraceContext`](#connecttracecontext)                     |
 
 Every context below also has `error?: unknown`, set once the operation fails. Where a context has a
-writable `sql`, a subscriber may replace it in `start` and postgrejs sends the replaced text — see
+writable `sql`, a subscriber may replace it in `start` and postgrejs sends the replaced text. See
 [Changing the SQL that is sent](../../observability/tracing-channels.md#changing-the-sql-that-is-sent).
 
 ## QueryTraceContext

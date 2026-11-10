@@ -68,8 +68,8 @@ one, and `prepare()` is named `PREPARE` for the same reason. A transaction comma
 itself: `BEGIN`, `COMMIT`, `ROLLBACK`, `SAVEPOINT`, `RELEASE SAVEPOINT`, `ROLLBACK TO SAVEPOINT`,
 `PREPARE TRANSACTION`, `COMMIT PREPARED` or `ROLLBACK PREPARED`.
 
-A pooled query inside a trace looks like this, the wait for a connection and the query as two
-separate bars:
+Inside a trace, a pooled query shows the wait for a connection and the query as two separate bars.
+Here the database is named `postgres`:
 
 ```text
 request
@@ -82,33 +82,35 @@ request
 └─ COMMIT
 ```
 
-How each operation maps to spans:
+A transaction method gives a span only when it sends something. A nested `startTransaction()` or
+`commit()` that only counts the depth gives none. The `BEGIN` that a statement run with
+`autoCommit: false` opens, and the savepoint
+[`rollbackOnError`](../transactions/transactions-and-savepoints.md#error-handling-rollbackonerror)
+puts around a statement inside a transaction, are part of that statement's span.
 
-- **Transactions.** A transaction method gives a span only when it sends something. A nested
-  `startTransaction()` or `commit()` that only counts the depth gives none. The `BEGIN` that a
-  statement run with `autoCommit: false` opens, and the savepoint
-  [`rollbackOnError`](../transactions/transactions-and-savepoints.md#error-handling-rollbackonerror)
-  puts around a statement inside a transaction, are part of that statement's span.
-- **Prepared statements.** A `PREPARE` span when the statement is prepared, and a span of its own for
-  each `execute()`. An `executeBatch()` is one span for the whole batch, since every parameter set
-  goes out in one round trip, and records how many sets it ran. A `query()` that prepares a
-  statement for itself, as it does to return a cursor, is one span.
-- **Pipelines.** A `pipeline()` is one span: its statements are sent together and answered together,
-  so a span per statement could only split one round trip into made-up parts. `db.query.text` holds
-  the statements joined with `; `, and when the server rejects one,
-  `postgrejs.pipeline.failed_index` says which.
-- **Cursors.** Opening a cursor reads nothing: the statement that opens it ends before the first row
-  arrives. Each batch the cursor then reads is a `FETCH` span, a child of whatever span is active
-  where the rows are read, with a link to the span of the statement that opened the cursor.
-- **COPY.** A `copyFromRows()` that isn't given its columns and their types first asks the server to
-  describe the table, and that round trip is a `PREPARE <table>` span just before the
-  `COPY <table>` one; a table that doesn't exist fails there, and no COPY is sent. A COPY span lasts
-  until the server reports the copy finished, not until `copyTo()` or `copyFrom()` resolves, so a
-  consumer that reads a large export slowly keeps the span open. A `copyTo()` stream destroyed early
-  isn't an error and sets `postgrejs.copy.aborted`. A `copyFrom()` whose source fails sends
-  `CopyFail`, which the server answers with an error (`57014`), and the span records it.
-- **Pool and connect.** A connection opened while a caller waits for the pool is a child of that
-  caller's acquire span. The query that follows is a sibling of the acquire span.
+A prepared statement gives a `PREPARE` span when it is prepared and a span of its own for each
+`execute()`. An `executeBatch()` is one span for the whole batch, since every parameter set goes out
+in one round trip, and records how many sets it ran. A `query()` that prepares a statement for
+itself, as it does to return a cursor, is one span.
+
+A `pipeline()` is one span too. Its statements are sent together and answered together, so there is
+no separate timing per statement to record. `db.query.text` holds the statements joined with `; `,
+and when the server rejects one, `postgrejs.pipeline.failed_index` says which.
+
+Opening a cursor reads nothing: the statement that opens it ends before the first row arrives. Each
+batch the cursor then reads is a `FETCH` span. It is a child of whatever span is active where the
+rows are read, and links to the span of the statement that opened the cursor.
+
+A `copyFromRows()` call that isn't given its columns and their types first asks the server to
+describe the table. That round trip is a `PREPARE <table>` span just before the `COPY <table>` one;
+a table that doesn't exist fails there, and no COPY is sent. A COPY span lasts until the server
+reports the copy finished, not until `copyTo()` or `copyFrom()` resolves, so a consumer that reads a
+large export slowly keeps the span open. A `copyTo()` stream destroyed early isn't an error and sets
+`postgrejs.copy.aborted`. A `copyFrom()` whose source fails sends `CopyFail`, which the server
+answers with an error (`57014`), and the span records it.
+
+A connection opened while a caller waits for the pool is a child of that caller's acquire span. The
+query that follows is a sibling of the acquire span.
 
 ### Attributes
 
@@ -187,17 +189,17 @@ new PostgrejsInstrumentation({
 | Option              | Default | Description                                                                                                                                                                                                          |
 |:--------------------|:--------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `enabled`           | `true`  | Subscribe on construction.                                                                                                                                                                                           |
-| `requireParentSpan` | `false` | Create spans only when a span is already active, so a pool warming up or a background job outside any trace doesn't produce root spans. Metrics are recorded either way.                                           |
+| `requireParentSpan` | `false` | Create spans only when a span is already active, so a pool warming up or a background job outside any trace doesn't produce root spans. `db.client.operation.duration` is still recorded.                                |
 | `captureQueryText`  | `true`  | Record `db.query.text`. A statement sent without parameters can carry literal values in its text; turn this off if those can be sensitive.                                                                          |
 | `requestHook`       |         | Called when a statement span starts, before the statement is sent.                                                                                                                                                  |
 | `responseHook`      |         | Called before a statement span ends, after the statement succeeded.                                                                                                                                                 |
 | `sqlComment`        |         | Put a comment in front of every statement, see [below](#sql-comments).                                                                                                                                             |
 
-The hooks are called for each statement, `prepare()` and COPY with the span and
+The hooks are called for each statement, `prepare()` and COPY, with the span and
 `{ operation, context }`. `operation` is `query`, `execute`, `prepare`, `executePrepared`,
-`pipeline`, `fetch` or `copy`, and `context` is what postgrejs published on the channel:
-`context.sql` (`context.statements` for a pipeline) and `context.connection`, plus `context.result`
-in the response hook of everything but a COPY, and `rowCount` and `bytes` in that of a COPY. A
+`pipeline`, `fetch` or `copy`. `context` is what postgrejs published on the channel:
+`context.sql` (`context.statements` for a pipeline) and `context.connection`. The response hook also
+gets `context.result`, except for a COPY, where it gets `rowCount` and `bytes` instead. A
 transaction command comes as an `execute` with `context.command` set. An exception thrown by a hook
 is logged through OpenTelemetry's `diag` and doesn't reach the query.
 
@@ -224,7 +226,7 @@ new PostgrejsInstrumentation({
 `traceparent` makes the statement text different on every call. postgrejs reuses a
 [cached prepared statement](../querying/extended-query.md#automatic-statement-caching) only while the
 text stays the same, so with it on, the server parses every query again. Tags alone are the same on
-every call and cost nothing of the kind.
+every call and don't affect that reuse.
 
 A prepared statement gets its comment once, when it is prepared, and every execution runs that
 text, since an execution refers to the statement by name and sends no text of its own. Its comment

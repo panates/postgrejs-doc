@@ -10,14 +10,14 @@ Since 3.15.0, postgrejs reports what it does on Node's
 prepared statement, pipeline, cursor fetch, COPY, transaction command, pool acquire and connection
 attempt, plus the pool's own activity. Any code in the process can subscribe and build logs, metrics
 or traces from it. Nothing is patched, so it works the same whether postgrejs was loaded as ESM,
-from CommonJS or through a bundler, and the order of imports doesn't matter.
+from CommonJS or through a bundler, and the order of imports doesn't matter. It works on Node.js and
+on Bun. A channel with no subscribers costs nothing: postgrejs publishes nothing on it and allocates
+nothing for it.
 
 For OpenTelemetry you don't have to write a subscriber yourself:
 [`postgrejs-otel`](./opentelemetry.md) turns these channels into spans and metrics. This page is for
 everything else: a slow-query log, your own metrics, a comment in front of every statement, or an
 APM agent that consumes the channels directly.
-
-Nothing is published, and nothing is allocated for it, while a channel has no subscribers.
 
 ## Subscribing
 
@@ -66,7 +66,7 @@ and all five receive the same context object for one operation:
 
 `result` is set on the context once the operation succeeds, `error` once it fails. An
 `AsyncLocalStorage` bound to the `start` channel with `bindStore()` is active for the whole
-operation, which is how a tracer keeps the operation's span current while it runs.
+operation. A tracer uses this to keep the operation's span current while it runs.
 
 ## The tracing channels
 
@@ -89,7 +89,7 @@ is.
 ### Queries and scripts
 
 `pool.query()` and `pool.execute()` publish through the connection they land on, so a pooled query
-shows up as a `postgrejs:pool:acquire` followed by a `postgrejs:query`, not as one event.
+shows up as two events: a `postgrejs:pool:acquire`, then a `postgrejs:query`.
 
 A `query()` that prepares a statement for itself, as it does to return a cursor, is published on
 `postgrejs:query` only. The statement it prepares is part of that query.
@@ -115,8 +115,8 @@ puts around a statement, travel with that statement and aren't published on thei
 event, with `batchSize` set to the number of parameter sets, since every set goes out in one round
 trip.
 
-`copyFromRows()` that isn't given its columns and their types first describes a query on the table
-the same way. That lookup is published on `postgrejs:prepare` with `ctx.table` set, and with no
+A `copyFromRows()` call that isn't given its columns and their types first describes a query on the
+table the same way. That lookup is published on `postgrejs:prepare` with `ctx.table` set, and with no
 `result`, since no prepared statement is left behind.
 
 ### Pipelines
@@ -144,8 +144,8 @@ finishes the copy, its output is discarded, and `ctx.aborted` is `true`.
 
 ### Pool acquire and connect
 
-`postgrejs:pool:acquire` covers the time a caller waits for a pooled connection, the wait a query
-span alone would hide. When the pool has to open a new connection for it, that
+`postgrejs:pool:acquire` covers the time a caller waits for a pooled connection. The query that
+follows doesn't include that wait. When the pool has to open a new connection for the caller, that
 `postgrejs:connect` happens inside the acquire. A caller that gives up after `acquireTimeoutMillis`
 ends the acquire with an error.
 
@@ -246,13 +246,8 @@ for (const channel of [tracingChannels.query, tracingChannels.execute]) {
 ```
 
 `asyncEnd` fires whether the statement succeeded or not, so one handler sees both. The context
-object itself is the key that ties `start` to `asyncEnd`, and a `WeakMap` lets it go once the
-operation is over.
-
-## Runtimes
-
-The channels work wherever `node:diagnostics_channel` does: Node.js, and Bun, which implements
-tracing channels too.
+object is the same in `start` and `asyncEnd`, so it works as the key. Because the map is a
+`WeakMap`, an entry goes away once its context does.
 
 ## See also
 
