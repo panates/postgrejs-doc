@@ -4,11 +4,11 @@ sidebar_position: 12
 
 # Geometric Types
 
-`point`, `circle`, `box`, `lseg`, `line`, `path` and `polygon` each decode to their own class —
-`Point`, `Circle`, `Box`, `LineSegment`, `Line`, `Path` and `Polygon` — instead of a plain object.
+`point`, `circle`, `box`, `lseg`, `line`, `path` and `polygon` each decode to their own class
+(`Point`, `Circle`, `Box`, `LineSegment`, `Line`, `Path` and `Polygon`) instead of a plain object.
 Every one of them has a `toString()`/`toPostgres()` that prints exactly what PostgreSQL prints, so
 casting the value back through its own type (`::point`, `::box`, ...) round-trips, and a `toJSON()`
-that gives its fields — `JSON.stringify(point)` gives `{"x":1,"y":2}`, and `String(point)` is what
+that gives its fields: `JSON.stringify(point)` gives `{"x":1,"y":2}`, and `String(point)` is what
 gives `"(1,2)"`.
 
 ```ts
@@ -22,12 +22,12 @@ r.rows[0][0]; // Point { x: 1, y: 2 }
 r.rows[0][1]; // Box { x1: 1, y1: 1, x2: 0, y2: 0 }
 ```
 
-`Box` and `LineSegment` exist as separate classes — not one shared `{x1,y1,x2,y2}` shape — because
+`Box` and `LineSegment` exist as separate classes, not one shared `{x1,y1,x2,y2}` shape, because
 a plain object of those four numbers is otherwise indistinguishable between the two types; the same
 is true of `Path` and `Polygon` over a list of points. A plain object matching a type's own shape
 (`{x,y}` for `Point`, `{x,y,radius}` or `{x,y,r}` for `Circle`, `{x1,y1,x2,y2}` for
 `Box`/`LineSegment`, `{a,b,c}` for `Line`) is still accepted as a parameter, for code that built one
-before these classes existed — but only for `Point`/`Circle`/`Line`, since `Box` and `LineSegment`
+before these classes existed, but only for `Point`/`Circle`/`Line`, since `Box` and `LineSegment`
 share a shape and only the class says which one is meant.
 
 ## Point
@@ -45,18 +45,18 @@ share a shape and only the class says which one is meant.
 |:---|:---|:---|
 | x | `number` | Center |
 | y | `number` | Center |
-| radius | `number` | Radius — `pg`'s own spelling |
+| radius | `number` | Radius (`pg`'s own spelling) |
 
 `new Circle(x?, y?, radius?)`, all defaulting to `0`. `r` is still there as an accessor onto the
-same number — this class's own name for the radius before v3.10 — but `radius` is the actual
+same number (this class's own name for the radius before v3.10), but `radius` is the actual
 property: it's what `Object.keys()`/`JSON.stringify()` report, and what a plain-object parameter
 can spell either way.
 
 ## Box
 
 A rectangle given by two opposite corners. PostgreSQL normalizes the corners to upper-right/
-lower-left on the way in, so `box(point(0,0), point(1,1))` decodes as `x1: 1, y1: 1, x2: 0, y2: 0`
-— that reordering is the server's, not something this class does.
+lower-left on the way in, so `box(point(0,0), point(1,1))` decodes as `x1: 1, y1: 1, x2: 0, y2: 0`.
+That reordering is the server's, not something this class does.
 
 | Key | Type | Description |
 |:---|:---|:---|
@@ -67,7 +67,7 @@ lower-left on the way in, so `box(point(0,0), point(1,1))` decodes as `x1: 1, y1
 
 ## LineSegment
 
-The straight line between two points — same shape as `Box`, kept separate for the reason above.
+The straight line between two points. It has the same shape as `Box` and is kept separate for the reason above.
 
 | Key | Type | Description |
 |:---|:---|:---|
@@ -78,7 +78,7 @@ The straight line between two points — same shape as `Box`, kept separate for 
 
 ## Line
 
-The infinite line `Ax + By + C = 0`, carried as its three coefficients — a pair of points would be
+The infinite line `Ax + By + C = 0`, carried as its three coefficients. A pair of points would be
 a second, lossy spelling of the same line, so PostgreSQL stores and prints the coefficients
 directly and this class does too.
 
@@ -92,7 +92,7 @@ directly and this class does too.
 
 Both hold a list of `Point`s (plain `{x,y}` objects are accepted in the constructor and kept as
 `Point`s). `Path.isClosed` tracks whether the path is open (`[...]`, printed with square brackets)
-or closed (`(...)`, the default — a literal with no brackets, `path '1,2,3,4'`, comes back closed).
+or closed (`(...)`, the default; a literal with no brackets, `path '1,2,3,4'`, comes back closed).
 A `Polygon` is always closed.
 
 | Key | Type | Description |
@@ -111,7 +111,7 @@ await connection.query('select $1::path as p', {
 });
 ```
 
-A plain array of points is *not* accepted for `Path`/`Polygon` parameters — `determine()` reads an
+A plain array of points is *not* accepted for `Path`/`Polygon` parameters: `determine()` reads an
 array as a `point[]` array parameter, so a `Path`/`Polygon` has to be constructed explicitly to be
 told apart from one.
 

@@ -24,7 +24,7 @@ try {
 }
 ```
 
-With `await using`, the same guarantee comes for free — the object is disposed as soon as control leaves the block,
+With `await using`, you get the same guarantee without writing the `finally`: the object is disposed as soon as control leaves the block,
 including when it leaves because of a thrown error:
 
 ```ts
@@ -36,7 +36,7 @@ including when it leaves because of a thrown error:
 } // connection.close() is called here automatically
 ```
 
-If the code inside the block throws, `connection.close()` still runs before the error propagates — there is no
+If the code inside the block throws, `connection.close()` still runs before the error propagates. There is no
 separate `catch`/`finally` to write.
 
 ## What Implements It
@@ -57,7 +57,7 @@ console.log(result.rows);
 // statement.close() runs first, then connection.close(), in reverse declaration order
 ```
 
-`LargeObject` and `LogicalReplication` do not implement `Symbol.asyncDispose` as of this version — close them
+`LargeObject` and `LogicalReplication` do not implement `Symbol.asyncDispose` as of this version. Close them
 explicitly with `try`/`finally` (see [Large Objects](../bulk-data/large-objects.md) and
 [Logical Replication](../bulk-data/logical-replication.md)).
 

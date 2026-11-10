@@ -130,7 +130,7 @@ to run other statements meanwhile, or give the cursor a connection of its
 own. `Pool.query()` does the latter automatically: a connection that opens a
 cursor is held back from `release()` until the cursor closes (by
 exhaustion, `break`, `close()`, or disposal), so nothing else can land on it
-and destroy the portal in the meantime — you don't need to `release()` it
+and destroy the portal in the meantime. You don't need to `release()` it
 yourself.
 
 ## Why use a cursor
@@ -144,8 +144,8 @@ say a prefix came back rather than the whole answer (see
 [Extended Query](./extended-query.md#fetchcount-and-suspended-results)).
 
 A cursor is what actually reads a result of any size without buffering it in
-full: it keeps only `fetchCount` rows (its batch size) in memory at a time,
-fetching more from the server as you consume them — through `next()`,
+full: it keeps only `fetchCount` rows (its batch size) in memory at a time
+and fetches more from the server as you consume them through `next()`,
 `fetch()`, or `for await`.
 
 ## See also

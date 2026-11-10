@@ -21,5 +21,5 @@ escapeLiteral(`O'Brien`); // "'O''Brien'"
 ```
 
 :::tip
-Prefer the [`sql`](./sql-tag.md) tagged template and bind parameters over building SQL text with these functions by hand — parameters are safe by construction, while a literal is only as safe as the code that calls `escapeLiteral()`/`escapeIdentifier()` correctly and consistently.
+Prefer the [`sql`](./sql-tag.md) tagged template and bind parameters over building SQL text with these functions by hand. Parameters are safe by construction, while a literal is only as safe as the code that calls `escapeLiteral()`/`escapeIdentifier()` correctly and consistently.
 :::

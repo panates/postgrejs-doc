@@ -5,7 +5,7 @@ slug: /guides/data-types
 
 # Data Types & Type Mapping
 
-**125 PostgreSQL types decode automatically, in both text and binary** — every commonly used
+125 PostgreSQL types decode automatically, in both text and binary: every commonly used
 scalar and array type, plus the geometric, network, range, interval, bit-string, full-text-search
 and system-column types below. The [scalar table](#built-in-scalar-types) just below covers the
 common ones; the rest get their own sections further down.
@@ -127,8 +127,8 @@ by working with `v.toString()`/`v.toNumber()` explicitly. A column whose values 
 `number`'s precision is unaffected and keeps decoding to a plain `number`.
 :::
 
-`numeric` decodes to a plain `number` whenever a double round-trips it faithfully — prints back the
-exact same digits — and to a [`Numeric`](../api/classes/numeric.md) instance otherwise, the same
+`numeric` decodes to a plain `number` whenever a double round-trips it faithfully (prints back the
+exact same digits), and to a [`Numeric`](../api/classes/numeric.md) instance otherwise, the same
 contract `int8` has with `number`/`BigInt`:
 
 ```ts
@@ -137,7 +137,7 @@ r.rows[0][0]; // 19.99 - a plain number, since a double holds it exactly
 r.rows[0][1]; // Numeric { value: '12345678901234567.89' }
 ```
 
-The comparison is the round trip itself, not a rule about magnitude — it catches both ways a
+The comparison is the round trip itself, not a rule about magnitude: it catches both ways a
 `number` loses a `numeric`: too many significant digits (`12345678901234567.89` would decode as
 `...68`), and a magnitude JavaScript prints in exponential notation, which PostgreSQL never writes
 (`-0.00000000000000001` as `-1e-17`). A declared scale's trailing zeroes (`numeric(40,6)` holding
@@ -169,8 +169,8 @@ See [API: Numeric](../api/classes/numeric.md) for the full class reference.
 
 ## Geometric Types
 
-`point`, `circle`, `box`, `lseg`, `line`, `path` and `polygon` each decode to their own class —
-`Point`, `Circle`, `Box`, `LineSegment`, `Line`, `Path`, `Polygon` — rather than a plain object.
+`point`, `circle`, `box`, `lseg`, `line`, `path` and `polygon` each decode to their own class
+(`Point`, `Circle`, `Box`, `LineSegment`, `Line`, `Path`, `Polygon`) rather than a plain object.
 Every one has a `toString()` that prints exactly what PostgreSQL prints, so it casts back through
 its own type, and a `toJSON()` that gives its fields, the way any other structured value does:
 
@@ -182,7 +182,7 @@ JSON.stringify(r.rows[0][0]); // '{"x":1,"y":2}'
 String(r.rows[0][0]);         // '(1,2)' - the literal, from toString()/toPostgres() instead
 ```
 
-`Circle`'s radius is the `radius` field, `pg`'s own spelling — `r`, this client's name for it before
+`Circle`'s radius is the `radius` field, `pg`'s own spelling. `r`, this client's name for it before
 the class existed, still works as an accessor onto the same number, and a plain `{x, y, r}` object
 is still accepted as a parameter alongside `{x, y, radius}`.
 
@@ -206,10 +206,10 @@ See [API: Geometric Types](../api/classes/geometric-types.md) for every class's 
 
 ## Interval
 
-`interval` decodes to an [`Interval`](../api/classes/interval.md) instance — the three quantities
-PostgreSQL actually keeps: a month count, a day count, and a time — rather than a total duration,
-since a month (28–31 days) and a day (23–25 hours across DST) aren't fixed lengths only the server,
-holding a calendar and time zone, can resolve against a timestamp.
+`interval` decodes to an [`Interval`](../api/classes/interval.md) instance holding the three quantities
+PostgreSQL actually keeps (a month count, a day count, and a time) rather than a total duration,
+since a month (28–31 days) and a day (23–25 hours across DST) aren't fixed lengths: only the server,
+holding a calendar and time zone, can resolve them against a timestamp.
 
 ```ts
 const r = await connection.query("select interval '1 year 2 mons 3 days 04:05:06.789' as i");
@@ -223,8 +223,8 @@ Only the fields that actually have a value are present — the wire format store
 and a zero among them isn't a field, so `new Interval({ days: 1, hours: 2 })` has just `days` and
 `hours` and `iv.minutes` is `undefined`, not `0`. `JSON.stringify(iv)` reflects the same fields.
 Reading one back needs to say what an absent field means (`iv.hours ?? 0`); everything this class
-derives — `totalMonths`, `totalMicroseconds`, `toString()`/`toPostgres()`, `toISOString()`, and the
-parameter path — already reads an absent field as the zero it stands for.
+derives (`totalMonths`, `totalMicroseconds`, `toString()`/`toPostgres()`, `toISOString()`, and the
+parameter path) already reads an absent field as the zero it stands for.
 
 ```ts
 import { Interval } from 'postgrejs';
@@ -238,8 +238,8 @@ See [API: Interval](../api/classes/interval.md) for the full field list and meth
 
 ## Range and Multirange Types
 
-`int4range`, `int8range`, `numrange`, `daterange`, `tsrange` and `tstzrange` — and their
-multirange counterparts — decode to a [`Range`](../api/classes/range.md) (a multirange to a plain
+`int4range`, `int8range`, `numrange`, `daterange`, `tsrange` and `tstzrange` and their
+multirange counterparts decode to a [`Range`](../api/classes/range.md) (a multirange to a plain
 `Range[]`): a pair of bounds, each possibly absent (unbounded) and each possibly inclusive, holding
 the element type's own JS values.
 
@@ -259,9 +259,9 @@ passed straight back as a parameter without naming it again:
 await connection.query('select $1::int4range', { params: [r.rows[0][0]] }); // just works
 ```
 
-A `Range` you build yourself has to be told which type it is — nothing about a bare `Range` says
-whether its numbers are meant as `int4range` or `numrange` — either through the constructor's
-fourth argument or [`BindParam`](../api/classes/bind-param.md), otherwise `determine()` throws
+A `Range` you build yourself has to be told which type it is, since nothing about a bare `Range` says
+whether its numbers are meant as `int4range` or `numrange`. Name it either through the constructor's
+fourth argument or [`BindParam`](../api/classes/bind-param.md); otherwise `determine()` throws
 rather than silently sending it as JSON:
 
 ```ts
@@ -283,8 +283,8 @@ See [API: Range](../api/classes/range.md) for the full reference.
 
 ## Network and Bit-String Types
 
-`inet`, `cidr`, `macaddr` and `macaddr8` decode to plain strings — the same form PostgreSQL prints
-(`192.168.1.0/24`, `2001:db8::1`, `08:00:2b:01:02:03`) — since an address isn't a shape JavaScript
+`inet`, `cidr`, `macaddr` and `macaddr8` decode to plain strings in the same form PostgreSQL prints
+(`192.168.1.0/24`, `2001:db8::1`, `08:00:2b:01:02:03`), since an address isn't a shape JavaScript
 has anything better for, and every Node API that takes one (`net`, `dns`, `http`) wants a string
 too. `bit`/`varbit` also decode to strings of `0` and `1`, for the same reason: a number loses
 leading zeroes and anything past 53 bits, and a `Buffer` loses the exact bit count.
@@ -311,9 +311,9 @@ await connection.query('insert into hosts (addr) values ($1)', {
 
 ## Full-Text Search and jsonpath
 
-`tsvector`, `tsquery` and `jsonpath` decode to the strings PostgreSQL itself prints —
-`'cat':1,3 'dog':2`, `'a' & !'b'`, `$."a"[*]."b"` (jsonpath's own normalized spelling, not
-necessarily what was written) — since the tree behind each has already been built by the server,
+`tsvector`, `tsquery` and `jsonpath` decode to the strings PostgreSQL itself prints:
+`'cat':1,3 'dog':2`, `'a' & !'b'` and `$."a"[*]."b"` (jsonpath's own normalized spelling, not
+necessarily what was written). The tree behind each has already been built by the server,
 and there is nothing more useful for an application to do with it than read or compare the text.
 
 `tsvector`/`tsquery` are also the two exceptions to "postgrejs can send this back as a binary
@@ -359,8 +359,8 @@ name them with [`BindParam`](../api/classes/bind-param.md) when sending one as a
 
 ## Money
 
-`money` decodes the same way `numeric` does — a `number` when a double holds the value exactly, a
-[`Numeric`](#numeric-exact-decimals) otherwise — since PostgreSQL's `money` is an int64 count of the
+`money` decodes the same way `numeric` does (a `number` when a double holds the value exactly, a
+[`Numeric`](#numeric-exact-decimals) otherwise), since PostgreSQL's `money` is an int64 count of the
 smallest currency unit, and how many of those make one unit (`lc_monetary`) is a server setting the
 wire format doesn't carry:
 
@@ -379,8 +379,8 @@ exact decimal with neither.
 
 ## Exact Decimal Strings: `decimalAsString`
 
-`decimalAsString` decodes `numeric` and `money` into the exact decimal string they carry — no
-currency symbol, no thousands separator, no conversion — instead of a `number`/`Numeric`:
+`decimalAsString` decodes `numeric` and `money` into the exact decimal string they carry, with no
+currency symbol, thousands separator or conversion, instead of a `number`/`Numeric`:
 
 ```ts
 const r = await connection.query("select '1234.5000'::numeric as n, '12.34'::money as m", {
@@ -401,7 +401,7 @@ text and gets back whatever `numeric`'s own text representation is — the same 
 
 ## Enum, Extension, and Other Unregistered Types
 
-A column whose type isn't registered — an enum, a composite, or an extension type — arrives as a
+A column whose type isn't registered (an enum, a composite, or an extension type) arrives as a
 raw `Buffer` by default. `unknownTypesAsString` asks the server for the column's own text instead,
 which is what `pg` hands back for the same column:
 
@@ -465,7 +465,7 @@ PostgreSQL's own single-byte `"char"` is the built-in example: any
 one-character string satisfies its `isType`, but a bare `'A'` parameter is
 never meant as `"char"`, so `determine()` passes it over during inference
 while `"char"` columns still decode normally. Reach the type explicitly
-instead with `new BindParam(oid, value)` when it's genuinely what you want.
+instead with `new BindParam(oid, value)` when that type is what you want.
 
 ## Per-query type mapping
 

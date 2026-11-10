@@ -67,7 +67,7 @@ v3 started at `node >= 20.x`; since 3.14.2 postgrejs requires `node >= 22.x`. Se
 
 ## New in v3
 
-None of the following requires changes to existing code — all are new, opt-in capabilities:
+None of the following requires changes to existing code. All of them are new, opt-in capabilities:
 
 - **[COPY streams](./bulk-data/copy.md)** — bulk import/export via `connection.copyTo()` / `connection.copyFrom()` as Node streams.
 - **[Large objects](./bulk-data/large-objects.md)** — stream data through PostgreSQL's large object API for values too big for `bytea`.

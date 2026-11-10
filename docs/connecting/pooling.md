@@ -39,6 +39,7 @@ deciding whether it's safe to shut down:
 | `acquiredConnections`  | `number`                                                 | How many connections are currently checked out (in use).        |
 | `idleConnections`      | `number`                                                 | How many connections are open but sitting unused, ready to be handed out. |
 | `totalConnections`     | `number`                                                 | `acquiredConnections + idleConnections` — every connection the pool currently holds open. |
+| `pendingAcquires`      | `number`                                                 | How many callers are waiting for a connection to be free. A caller that gave up after `acquireTimeoutMillis` drops out of the count. Since 3.15.0. |
 
 ```ts
 console.log(`${pool.acquiredConnections}/${pool.totalConnections} connections in use`);
@@ -174,9 +175,9 @@ submission order, use 3.14.1 or later.
 ## Reference Counting
 
 Each physical connection tracks how many operations are currently running on it (queries, copy streams, prepared
-statement calls, and so on). This internal count is what powers graceful shutdown — both
+statement calls, and so on). Graceful shutdown is built on this internal count: both
 [`Connection.close(terminateWait)`](./single-connection.md#graceful-shutdown) and `Pool.close(terminateWait)` poll it to
-decide whether a connection is still busy — and it is unrelated to how many callers currently hold the connection
+decide whether a connection is still busy. It is unrelated to how many callers currently hold the connection
 checked out from the pool.
 
 Checking a connection in and out of the pool itself works differently: `pool.acquire()` hands out a `Connection`

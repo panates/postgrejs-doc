@@ -15,13 +15,12 @@ over `postgrejs` for [TypeORM](https://typeorm.io). Put it where `pg` goes and e
 stays the same — your entities, your queries, your migrations. TypeORM only ever talks to
 PostgreSQL through [`pg`](https://node-postgres.com), so a facade is the whole integration.
 
-It's faster where it counts and holds far less memory doing it. A 4MB `bytea` comes back in
-15.337 ms against 35.207 ms, at 4.1 MB a call against 51.6 MB — `pg` reads that column as hex text,
-twice the size, off the JS heap where a heap figure alone can't see it. A 100,000-element `int4[]`
-runs 3.89x, at 2.2 MB against 23.8 MB. Ordinary queries gain less and gain it repeatably: a point
-read is the faster of the two in 391 of 401 alternated pairs. All of it measured through TypeORM
-against `pg` on the same server. And the client underneath can do things TypeORM has no way to
-ask for.
+On large values it is faster and holds much less memory. A 4MB `bytea` comes back in 15.337 ms
+against 35.207 ms, at 4.1 MB a call against 51.6 MB; `pg` reads that column as hex text, twice the
+size, off the JS heap where a heap figure alone can't see it. A 100,000-element `int4[]` runs 3.89x
+faster, at 2.2 MB against 23.8 MB. Ordinary queries gain less, but repeatably: a point read is the
+faster of the two in 391 of 401 alternated pairs. All of it was measured through TypeORM against
+`pg` on the same server. The client underneath can also do things TypeORM has no way to ask for.
 
 ## Installation
 
@@ -92,9 +91,9 @@ new DataSource({
 
 One worth knowing about in that last row. `postgrejs` captures a caller-preserving async stack on
 every call (`asyncErrorHandling`, on by default) so a failure points at the line that made it; `pg`
-has nothing equivalent. **Through this facade the stack it preserves names this package's own
-`client.js` rather than your code**, because the call it reaches back to is the facade's, not
-yours — so you're paying for it and not collecting it:
+has nothing equivalent. Through this facade the stack it preserves names this package's own
+`client.js` rather than your code, because the call it reaches back to is the facade's, not yours.
+So the capture still costs something and gives you nothing:
 
 ```ts
 extra: { postgrejs: { connection: { asyncErrorHandling: false } } }
@@ -102,24 +101,25 @@ extra: { postgrejs: { connection: { asyncErrorHandling: false } } }
 
 It's left on by default because that's `postgrejs`'s default and this package doesn't quietly
 change its behavior. Measured here it's below the noise of the allocation estimator the benchmarks
-use (12.90 KB a call against 12.85), so turn it off for tidiness rather than for a number.
+use (12.90 KB a call against 12.85), so turning it off is a matter of tidiness, not of measurable
+cost.
 
 ## Why
 
 It's a drop-in swap for `pg`: the same `driver` option, the same entities, the same queries, the
-same migrations. What that buys:
+same migrations. The differences:
 
-- **Faster where the payload is large** — 2.30x on a 4MB `bytea` and 3.89x on a 100,000-element
+- It is faster where the payload is large: 2.30x on a 4MB `bytea` and 3.89x on a 100,000-element
   `int4[]`, on a fraction of the memory, because the values arrive in PostgreSQL's binary format
-  rather than as text to be parsed.
-- **Slightly faster on ordinary round trips**, repeatably — statements are prepared and reused
-  without anyone asking for it.
-- **Correct dates on a server whose `DateStyle` isn't `ISO`**, where `pg` hands back `null`.
-- **A client that can do what TypeORM has no way to ask for** — cursors, `COPY`, `LISTEN`/`NOTIFY`,
-  large objects and logical replication, on the same pool your queries use, through
-  `client.connection`.
-- **Checked against TypeORM's own functional suite** — 806 of its tests pass, with `pg` run over the
-  same files on the same server in the same invocation as the control.
+  and are not parsed from text.
+- It is slightly faster on ordinary round trips, repeatably, because statements are prepared and
+  reused without anyone asking for it.
+- Dates are correct on a server whose `DateStyle` isn't `ISO`, where `pg` hands back `null`.
+- The client underneath can do what TypeORM has no way to ask for: cursors, `COPY`,
+  `LISTEN`/`NOTIFY`, large objects and logical replication, on the same pool your queries use,
+  through `client.connection`.
+- It is checked against TypeORM's own functional suite: 806 of its tests pass, with `pg` run over
+  the same files on the same server in the same invocation as the control.
 
 | Scenario | `pg` | `typeorm-postgrejs` | Speedup / memory |
 |:---|:---|:---|:---|
@@ -137,11 +137,11 @@ same migrations. What that buys:
 TypeORM 1.1.1, `pg` 8.23.1, `postgrejs` 3.13.0, PostgreSQL 18.6, loopback, Node 24.15.0. Medians per
 call, with allocation per call as the second figure.
 
-**The gain follows the payload, not the query.** An ordinary read or write gains a little and gains
-it consistently; a column that carries bulk — an array, a `bytea`, anything large — gains twice
-over, in time and in memory. It allocates *more* on the smallest calls, where a fixed per-call cost
-has nothing to amortize against. A schema of text, integers and timestamps sees the top of that
-table, not the bottom.
+The size of the gain depends on the payload, not on the query. An ordinary read or write gains a
+little, consistently; a column that carries bulk (an array, a `bytea`, anything large) gains in both
+time and memory. It allocates *more* on the smallest calls, where a fixed per-call cost has nothing
+to amortize against. A schema of text, integers and timestamps will see figures like the top rows of
+that table, not the bottom ones.
 
 ## How the numbers were measured
 
@@ -150,8 +150,8 @@ Each figure is a median. Memory is a separate pass, one child process per client
 baseline taken with both alive has their pools and buffers under it rather than in it.
 
 The medians alone wouldn't be worth much — on a shared machine the absolute figures drift by more
-than the differences do — so which of the two won each pair is counted separately. A sign test, so
-only which client won counts and by how much is thrown away; the benchmark runs 29 scenarios, and
+than the differences do — so which of the two won each pair is counted separately. This is a sign
+test, so only which client won counts and by how much is thrown away; the benchmark runs 29 scenarios, and
 these are the headline ones:
 
 | Workload | Pairs | `typeorm-postgrejs` faster in | Odds of that by luck |
@@ -169,8 +169,7 @@ these are the headline ones:
 | Concurrent reads | 61 | 56 | < 1 in 10¹¹ |
 | Concurrent finds | 61 | 49 | < 1 in 10⁵ |
 
-**Every scenario is one the client dominates**, and that's a selection rule rather than a
-coincidence. A shape where PostgreSQL does most of the work measures PostgreSQL: its ratio is set
+Every scenario is one the client dominates, and they were selected for that. A shape where PostgreSQL does most of the work measures PostgreSQL: its ratio is set
 by how much scanning or writing was asked for, and a reader takes it for a property of the
 workload. The one row whose clock isn't the client's is the 4MB write, where both sides are
 pushing bytes through a socket at the same speed — it's kept for its allocation column and says so.
@@ -197,8 +196,8 @@ pg (control)         806 / 806   (127 files)
 typeorm-postgrejs    806 / 806   (127 files)
 ```
 
-Same tests, and both pass every one — not a single test this facade loses that `pg` wins. There's
-no expected-failure list either, and that's deliberate rather than lazy: these tests leave schema
+Both run the same tests and both pass every one, so there is no test this facade loses that `pg`
+wins. There's no expected-failure list either, and that's deliberate: these tests leave schema
 behind and read it back, so the same file scores differently between two runs of the *same*
 driver (`create-table.test.js` scored 1/4 and then 5/0 with nothing changed). Only a control
 measured in the same invocation is worth comparing against.
@@ -207,8 +206,7 @@ The script clones and compiles TypeORM at a pinned tag and patches one function 
 `getTypeOrmConfig()`, because an `ormconfig.json` can't carry a `driver` object — then runs every
 file twice, each in its own process, on a freshly reset database.
 
-On top of that, **275 tests** of this package's own at 99.9% coverage, including a differential
-suite that runs 20 TypeORM programs through `pg` as well and deep-compares the two.
+The package also has 275 tests of its own, at 99.9% coverage, including a differential suite that runs 20 TypeORM programs through `pg` as well and deep-compares the two.
 
 ## What changes when you switch
 
@@ -253,7 +251,7 @@ await client.query('insert into shapes (p) values ($1)', [rows[0].p]); // writes
 ```
 
 Through `pg` that second call fails with `22P02`: its plain object has no way to render itself
-into a `point` again, so a value you just read isn't a value you can pass on.
+into a `point` again, so a value read through `pg` can't be passed back as a parameter.
 
 ### A lost connection
 

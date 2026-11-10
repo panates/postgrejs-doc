@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # sql
 
-A tagged-template function that builds a `QueryRequest` from a template literal, turning every interpolated value into a bind parameter. Interpolated values are never written into the SQL text, so this is not string building with extra steps — there is no way for a value to be read as SQL.
+A tagged-template function that builds a `QueryRequest` from a template literal, turning every interpolated value into a bind parameter. Interpolated values are never written into the SQL text, so there is no way for a value to be read as SQL.
 
 ```ts
 import { sql } from 'postgrejs';
@@ -29,7 +29,7 @@ await connection.query(sql`select * from t ${filter} order by id`);
 
 Returns: `QueryRequest`
 
-Quotes a table, column or schema name for use inside a `sql` template, the way PostgreSQL's own `quote_ident()` does. Values become parameters, but names cannot — `$1` is always a value, so `` sql`select ${col} from t` `` selects the string, not the column. This writes the name into the statement instead.
+Quotes a table, column or schema name for use inside a `sql` template, the way PostgreSQL's own `quote_ident()` does. Values become parameters, but names cannot: `$1` is always a value, so `` sql`select ${col} from t` `` selects the string, not the column. This writes the name into the statement instead.
 
 ```ts
 await connection.query(sql`select ${sql.ident(col)} from ${sql.ident(table)}`);
@@ -75,7 +75,7 @@ The object returned by `sql`, `sql.ident()`, `sql.values()` and `sql.set()`.
 
 | Key    | Type     | Description                        |
 |--------|----------|---------------------------------------|
-| sql    | `string` | The statement text with `$1`, `$2`, … placeholders |
+| sql    | `string` | The statement text with `$1`, `$2`, ... placeholders |
 | params | `any[]`  | The extracted parameter values         |
 
 ### stringify(options?)
@@ -86,6 +86,6 @@ The object returned by `sql`, `sql.ident()`, `sql.values()` and `sql.set()`.
 
 Returns: `string`
 
-Writes the request's values in as literals, for use with the Simple Query protocol (`connection.execute()`), which carries no out-of-band parameters. Most values are encoded by their own data type and given an explicit cast (`'42'::int4`); a `string`, a `Date`, and an array of numbers/`bigint`s/strings/`Date`s are written bare instead, the same as they are as parameters — see [Strings, Dates, and numeric arrays go out unspecified](../../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified). A value whose type has no text encoding at all throws rather than falling back to a generic conversion. Parameters (via `query()`) are safe by construction — literals are only as safe as the encoder, which is why `stringify()` refuses to guess instead of producing something that looks plausible.
+Writes the request's values in as literals, for use with the Simple Query protocol (`connection.execute()`), which carries no out-of-band parameters. Most values are encoded by their own data type and given an explicit cast (`'42'::int4`); a `string`, a `Date`, and an array of numbers/`bigint`s/strings/`Date`s are written bare instead, the same as they are as parameters; see [Strings, Dates, and numeric arrays go out unspecified](../../querying/query-parameters.md#strings-dates-and-numeric-arrays-go-out-unspecified). A value whose type has no text encoding at all throws instead of falling back to a generic conversion. Parameters (via `query()`) are safe by construction. Literals are only as safe as the encoder, which is why `stringify()` refuses to guess instead of producing something that looks plausible.
 
 See the [The sql Template Tag](../../querying/sql-tag.md) guide for a fuller walkthrough.

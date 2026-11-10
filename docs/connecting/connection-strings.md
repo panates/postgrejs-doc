@@ -5,8 +5,8 @@ slug: /guides/connection-strings
 
 # Connection Strings
 
-`Connection` and `Pool` both accept a connection string in place of a configuration object — everything below
-applies to both, see [Single Connection](./single-connection.md) and [Connection Pooling](./pooling.md) for how
+`Connection` and `Pool` both accept a connection string in place of a configuration object. Everything below
+applies to both; see [Single Connection](./single-connection.md) and [Connection Pooling](./pooling.md) for how
 each is constructed.
 
 ## TCP connection strings
@@ -93,10 +93,10 @@ new Connection({ dbname: 'mydb', host: 'localhost' });
 ```
 
 Silently ignoring one of these was worse than failing: `dbname` looks right, does nothing, and the
-connection succeeds — against whatever database the environment defaults to — so the mistake used
-to surface later, as missing tables or as writes landing somewhere unintended, rather than at the
-`new Connection()` call that made it. Every other key this client doesn't recognize — including your
-own config's own fields, or `lightning-pool`'s pool options on a `Pool` config — passes through
+connection succeeds against whatever database the environment defaults to. The mistake used
+to surface later, as missing tables or as writes landing somewhere unintended, instead of at the
+`new Connection()` call that made it. Every other key this client doesn't recognize, including your
+own config's own fields or `lightning-pool`'s pool options on a `Pool` config, passes through
 untouched, exactly as before.
 
 ## See Also

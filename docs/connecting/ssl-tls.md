@@ -72,7 +72,7 @@ const connection = new Connection({
 });
 ```
 
-Channel binding mixes a hash of the server's TLS certificate into the SCRAM proof. This protects the login when a middlebox terminates TLS in front of Postgres (an intercepting proxy, a misconfigured load balancer) — such a proxy necessarily presents a different certificate to the client than the one the real server used, so a channel-bound proof computed against it fails, revealing the interception instead of silently authenticating through it. It matters most when the certificate itself isn't strictly verified, which is the common case with a self-signed certificate or a permissive `ssl` config.
+Channel binding mixes a hash of the server's TLS certificate into the SCRAM proof. This protects the login when a middlebox terminates TLS in front of Postgres (an intercepting proxy, a misconfigured load balancer). Such a proxy necessarily presents a different certificate to the client than the one the real server used, so a channel-bound proof computed against it fails. The interception is revealed instead of the client silently authenticating through it. It matters most when the certificate itself isn't strictly verified, which is the common case with a self-signed certificate or a permissive `ssl` config.
 
 ## See also
 

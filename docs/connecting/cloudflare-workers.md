@@ -73,7 +73,7 @@ against the same server with `sslmode` removed, which it refuses (`28000 connect
 That second result is what gives the first one meaning: since the server turns away unencrypted
 connections, a query that answered could only have answered over TLS.
 
-Three limits come with it, and none of them is this client's to lift.
+Three limits come with it. All three come from the runtime, so this client can't lift them.
 
 ### The certificate has to chain to a public CA
 
@@ -140,9 +140,9 @@ export default {
 };
 ```
 
-The string it hands over carries `sslmode=disable` — which [leaves TLS off](./connection-strings.md#query-parameters)
-for the Worker's leg — and that is the point rather than a weakening: the TLS that protects the
-database is the leg Hyperdrive holds, and the Worker's leg doesn't leave Cloudflare.
+The string it hands over carries `sslmode=disable`, which [leaves TLS off](./connection-strings.md#query-parameters)
+for the Worker's leg. That is intended and doesn't weaken the connection: the TLS that protects the
+database is on the leg Hyperdrive holds, and the Worker's leg doesn't leave Cloudflare.
 
 `wrangler dev` serves the binding locally without an account — point it at any database with:
 
@@ -164,7 +164,7 @@ handling rather than anything specific to this client, but it hasn't been measur
   actually lives on this platform.
 - **[`LISTEN`/`NOTIFY`](../realtime/notifications.md) and
   [logical replication](../bulk-data/logical-replication.md)** need a connection that stays open and
-  a process that stays alive to hear it. Neither is a thing a request-scoped Worker has.
+  a process that stays alive to hear it. A request-scoped Worker has neither.
 - **`os.totalmem()` answers `0`** on workerd rather than throwing, so the buffer ceiling this client
   derives from it falls back to its own 2 GB cap. Nothing to configure; noted because the number
   differs from what the same code reports on Node.js.

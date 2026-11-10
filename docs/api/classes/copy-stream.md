@@ -49,7 +49,7 @@ A `COPY ... FROM STDIN` in progress, as a `Writable`. Whatever is written is for
 
 Extends: [`stream.Writable`](https://nodejs.org/api/stream.html#class-streamwritable)
 
-`'finish'` means the server accepted the whole copy — the stream waits for `CommandComplete` rather than for the last byte to leave, so `rowCount` is set by the time a `pipeline()` over it resolves. Destroying the stream (which `pipeline()` does when the source fails) sends `CopyFail`, leaving the connection usable rather than stuck waiting for data.
+`'finish'` means the server accepted the whole copy — the stream waits for `CommandComplete` rather than for the last byte to leave, so `rowCount` is set by the time a `pipeline()` over it resolves. Destroying the stream (which `pipeline()` does when the source fails) sends `CopyFail`, so the connection stays usable instead of stuck waiting for data.
 
 ### Properties
 

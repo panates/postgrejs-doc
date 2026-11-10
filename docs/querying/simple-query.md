@@ -47,7 +47,7 @@ The Simple Query protocol has no out-of-band parameter mechanism, so `ScriptExec
 await connection.execute(`select * from accounts where id = ${accountId}`);
 ```
 
-Passing a `sql\`...\`` template directly to `execute()` also works — the connection calls `.stringify()` on it internally, safely encoding each interpolated value as a properly cast literal:
+Passing a `sql\`...\`` template directly to `execute()` also works — the connection calls `.stringify()` on it internally, which safely encodes each interpolated value as a properly cast literal:
 
 ```ts
 import { sql } from 'postgrejs';
