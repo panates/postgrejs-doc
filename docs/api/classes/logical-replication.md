@@ -21,7 +21,7 @@ for await (const change of sub) {
 }
 ```
 
-The loop is the backpressure: nothing is read from the socket while the loop body is running, so a slow consumer slows the stream instead of filling memory. Leaving the loop — by `break`, by throwing, or by calling `close()` — ends the subscription cleanly.
+The loop is the backpressure: nothing is read from the socket while the loop body is running, so a slow consumer slows the stream instead of filling memory. Leaving the loop (by `break`, by throwing, or by calling `close()`) ends the subscription cleanly.
 
 Each change is confirmed to the server when the *next* one is pulled, not when it is handed over. A consumer that crashes half way through therefore sees that change again on the next run rather than losing it, and no caller has to remember to call `ack()` themselves.
 

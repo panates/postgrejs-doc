@@ -4,11 +4,11 @@ sidebar_position: 7
 
 # LargeObject
 
-A PostgreSQL large object: binary data stored outside the row it belongs to, reached through a file-like interface so it can be seeked into and read a piece at a time, rather than loaded whole the way a `bytea` column must be — up to 4TB, against roughly 1GB for `bytea`.
+A PostgreSQL large object: binary data stored outside the row it belongs to, reached through a file-like interface so it can be seeked into and read a piece at a time instead of loaded whole the way a `bytea` column must be. A large object can hold up to 4TB, against roughly 1GB for `bytea`.
 
 Instances are obtained from [Connection.createLargeObject()](./connection.md#createlargeobject) or [Connection.openLargeObject()](./connection.md#openlargeobject); it is never constructed directly.
 
-The descriptor a large object is opened with only lives as long as the transaction that opened it: `createLargeObject()`/`openLargeObject()` start one if the connection is not already in one, and `close()` commits that one — but never a transaction the caller started, which stays theirs to finish.
+The descriptor a large object is opened with only lives as long as the transaction that opened it: `createLargeObject()`/`openLargeObject()` start one if the connection is not already in one, and `close()` commits that one, but never a transaction the caller started, which stays theirs to finish.
 
 ```ts
 import { Connection } from 'postgrejs';

@@ -30,9 +30,9 @@ await pipeline(out, fs.createWriteStream('users.csv'));
 console.log('rows exported:', out.rowCount);
 ```
 
-`copyTo()` resolves as soon as the server accepts the copy - the export
-itself is not buffered in memory; a consumer that reads slowly simply pauses
-the underlying socket via normal stream backpressure. The returned
+`copyTo()` resolves as soon as the server accepts the copy. The export
+itself is not buffered in memory: a consumer that reads slowly pauses
+the underlying socket through normal stream backpressure. The returned
 `CopyToStream` must be consumed or explicitly `destroy()`-ed, since the
 connection stays mid-statement until the copy finishes.
 
@@ -73,8 +73,8 @@ console.log('rows imported:', input.rowCount);
 ```
 
 `'finish'` on a `CopyFromStream` means the server has accepted and committed
-the whole copy - the stream actually waits for `CommandComplete`, not merely
-for the last byte to be written - so `rowCount` is already set by the time a
+the whole copy. The stream waits for `CommandComplete`, not just
+for the last byte to be written, so `rowCount` is already set by the time a
 `pipeline()` over it resolves.
 
 | Key | Type | Default | Description |
@@ -118,9 +118,9 @@ await pipeline(Readable.from([Buffer.concat(chunks)]), input);
 ## Binary COPY FROM: Loading JS Rows Directly with `copyFromRows()`
 
 `copyFrom()` sends whatever bytes you hand it — text, CSV, or binary, however you formatted them yourself.
-`copyFromRows(table, source, options?)` is different in kind, not just more convenient: it *always* speaks
+`copyFromRows(table, source, options?)` works differently: it *always* speaks
 binary. There is no text/CSV mode. It takes plain JS rows, encodes every value itself with the destination
-columns' own binary encoders, and drives `COPY ... FROM STDIN (FORMAT binary)` on the wire — you hand it
+columns' own binary encoders, and drives `COPY ... FROM STDIN (FORMAT binary)` on the wire. You hand it
 values, never bytes:
 
 ```ts
@@ -130,8 +130,8 @@ const { rowCount } = await connection.copyFromRows('users', [
 ], { columns: ['id', 'name', 'amount'] });
 ```
 
-`source` can be an array, a generator, or a `Readable` (already an `AsyncIterable`) — rows are pulled rather than
-pushed, so a source far larger than memory streams in with backpressure being the loop pausing rather than a
+`source` can be an array, a generator, or a `Readable` (already an `AsyncIterable`). Rows are pulled, not
+pushed, so a source far larger than memory streams in with backpressure: the loop pauses instead of a
 queue growing. Each row is either a positional array (matching `columns`, or the table's own column order if
 `columns` is omitted) or an object keyed by column name:
 
@@ -142,7 +142,7 @@ await connection.copyFromRows('users', [
 ```
 
 Measured on 200,000 rows of mixed types, `copyFromRows()` took 113ms against 460ms for the equivalent CSV
-`copyFrom()` — about 4x, with client-side encoding counted on both sides. Binary wins twice over: the server
+`copyFrom()` — about 4x, with client-side encoding counted on both sides. Binary is faster for two reasons: the server
 skips parsing the payload, and writing a 4-byte integer costs less than formatting its decimal text.
 
 ### Column types
@@ -150,15 +150,15 @@ skips parsing the payload, and writing a 4-byte integer costs less than formatti
 Binary `COPY` does no conversion server-side, so the column types have to be exactly right. By default,
 `copyFromRows()` finds them itself with one extra round trip (a `Describe` of `select <columns> from <table>
 where false` against the destination), so schemas, quoting, `search_path`, and views all resolve exactly as
-they will for the real `COPY`. Pass `columnTypes` to skip that probe when the OIDs are already known — worth it
-only on a hot path, and only when they're guaranteed to match the table, since a wrong OID here isn't something
-the server can reconcile: it either rejects the stream outright or, for two types that happen to share a byte
+they will for the real `COPY`. Pass `columnTypes` to skip that probe when the OIDs are already known. That is worth it
+only on a hot path, and only when they're guaranteed to match the table, because the server cannot reconcile
+a wrong OID here: it either rejects the stream outright or, for two types that happen to share a byte
 width, silently stores the bytes as the wrong value.
 
 ### Handling bad values
 
 A value the destination column can't encode — `'abc'` into an integer column, `{}` into a numeric one — aborts
-the copy by default, naming the offending row and column rather than surfacing PostgreSQL's opaque "incorrect
+the copy by default, naming the offending row and column instead of PostgreSQL's opaque "incorrect
 binary data format":
 
 ```ts
@@ -171,8 +171,8 @@ try {
 
 For a load large enough that abandoning it over one bad record costs more than the record is worth,
 `onInvalidValue: 'null'` writes `NULL` in just that column and keeps the row, and `onInvalidValue: 'skip'` drops
-the row entirely — both report how many they touched (`nulledValues`/`skippedRows` on the result), so a
-tolerant load still says what it swallowed rather than looking clean:
+the row entirely. Both report how many they affected (`nulledValues`/`skippedRows` on the result), so a
+tolerant load still reports what it nulled or dropped:
 
 ```ts
 const r = await connection.copyFromRows('users', rows, {

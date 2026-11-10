@@ -62,10 +62,10 @@ await connection.transaction(async tx => {
 | deferrable | `boolean` | `false` | Lets a `serializable` `readOnly` transaction wait until it can run without the serialization failures that level otherwise risks — ignored for any other combination |
 
 Setting them this way costs one round trip, where `BEGIN` followed by a separate `SET TRANSACTION`
-costs two. Modes only apply to the call that actually opens the transaction — passing them to a
+costs two. Modes only apply to the call that actually opens the transaction. Passing them to a
 nested `startTransaction()`/`transaction()` call, on a transaction that's already open, throws
-rather than silently applying to (or being ignored by) the outer one, since PostgreSQL's own
-behavior there depends on timing in a way nothing here should paper over.
+instead of silently applying to (or being ignored by) the outer one, because PostgreSQL's own
+behavior in that case depends on timing.
 
 ## Scoped Transactions: `transaction(fn)`
 
@@ -86,7 +86,7 @@ const id = await connection.transaction(async tx => {
 ```
 
 `fn` is handed the same connection it was called on (`tx` above is
-`connection` itself) — every statement it runs on `tx` is inside the
+`connection` itself). Every statement it runs on `tx` is inside the
 transaction, and one run on a different connection is not.
 
 A call made while a transaction is already open takes a savepoint instead of
@@ -144,7 +144,7 @@ const connection = new Connection({ autoCommit: false });
 
 With `autoCommit: false` on the connection config, the first statement you run
 outside of an explicit `startTransaction()` implicitly opens a transaction
-(`BEGIN`) before it runs — and that transaction is **not** committed
+(`BEGIN`) before it runs. That transaction is **not** committed
 automatically, so it stays open across subsequent calls until you call
 `commit()`/`rollback()` yourself, or pass `autoCommit: true` on a specific call
 to close it out:
@@ -282,14 +282,14 @@ await connection.commit();
 ```
 
 Like `rollback()`, `rollbackToSavepoint(name)` is **not** reference-counted
-either — regardless of how many nested `savepoint(name)` calls are open, it
+either. Regardless of how many nested `savepoint(name)` calls are open, it
 discards the savepoint (and everything done after it) outright and clears
 that name's nesting count. A still-pending `releaseSavepoint(name)` further
 up the call stack is then **not** a safe no-op: since the count was
 cleared, it will unconditionally send `RELEASE SAVEPOINT` again for a
 savepoint the server no longer has, which the server rejects with an error.
 In practice this means a `rollbackToSavepoint(name)` call should only
-happen at the same level that would otherwise have released that name — not
+happen at the same level that would otherwise have released that name, not
 underneath a `try`/`catch` that still expects to call
 `releaseSavepoint(name)` afterwards on the success path.
 

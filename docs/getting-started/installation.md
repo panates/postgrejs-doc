@@ -15,7 +15,7 @@ npm install postgrejs
 - `node >= 22.x` — the test suite runs in CI on every push across Node 22, 24 and 26, each against
   PostgreSQL 12, 16 and 18.
 - Bun — the same test suite runs under Bun in CI against PostgreSQL 18 on every push, so it's a supported
-  runtime rather than an untested coincidence.
+  and tested runtime.
 - Cloudflare Workers — with `nodejs_compat`. Not in the CI matrix yet: it was measured by hand against
   PostgreSQL 18, a plain connection and a TLS one, and what the runtime does and doesn't allow is written
   down in [Cloudflare Workers](../connecting/cloudflare-workers.md).

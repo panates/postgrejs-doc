@@ -47,7 +47,7 @@ try {
 
 ## `connection.cancel()`
 
-`connection.cancel(): Promise<void>` asks the server to cancel whatever the connection is currently running, using the same out-of-band cancel protocol as the `signal` option. It's the lower-level primitive `signal` is built on — call it directly when you need to trigger a cancel from code that doesn't hold the original `signal`.
+`connection.cancel(): Promise<void>` asks the server to cancel whatever the connection is currently running, using the same out-of-band cancel protocol as the `signal` option. It's the lower-level primitive `signal` is built on. Call it directly when you need to trigger a cancel from code that doesn't hold the original `signal`.
 
 ```ts
 const promise = connection.query('select pg_sleep(30)');
@@ -58,12 +58,12 @@ await connection.cancel();
 await promise; // rejects with a DatabaseError, SQLSTATE 57014, if the cancel was acted on
 ```
 
-Like the `signal` option, this is a request rather than a guarantee — the statement may finish first. Prefer the per-call `signal` option when you have one available: it does the same thing and delivers the abort/rejection back to the specific call that requested it, rather than to whichever query happens to be running.
+Like the `signal` option, this is a request, not a guarantee: the statement may finish first. Prefer the per-call `signal` option when you have one available: it does the same thing and delivers the abort/rejection back to the specific call that requested it, rather than to whichever query happens to be running.
 
 ## Long Cancellation Keys (PostgreSQL 18+)
 
 The out-of-band cancel protocol above works by sending the server a secret key it handed out when
-the connection was first established — anyone who has that key can cancel the session's running
+the connection was first established. Anyone who has that key can cancel the session's running
 query. Under protocol 3.0, that key is always exactly 4 bytes, small enough to be guessed by an
 attacker willing to brute-force it. PostgreSQL 18 added protocol 3.2, which lets the server hand
 out a key up to 256 bytes instead — set `longCancelKey: true` to request it:
@@ -81,8 +81,8 @@ connection.secretKey; // Buffer, up to 256 bytes on a PostgreSQL 18+ server
 
 Turning it on is never a connection-breaking choice. An older server doesn't understand protocol
 3.2, so it replies with `NegotiateProtocolVersion` naming the highest minor version it actually
-supports, and the session proceeds at 3.0 exactly as if `longCancelKey` had never been set — the
-connection still succeeds, `cancel()` still works, the key is just back to 4 bytes.
+supports, and the session proceeds at 3.0 exactly as if `longCancelKey` had never been set. The
+connection still succeeds and `cancel()` still works; the key is just back to 4 bytes.
 
 ### Checking whether the server accepted it
 

@@ -4,8 +4,8 @@ sidebar_position: 1
 
 # Introduction
 
-**postgrejs** is a PostgreSQL driver for Node.js built from the wire protocol up: no `libpq`, no native
-bindings, just strictly-typed TypeScript talking directly to PostgreSQL. It ships as ESM (Node 22.12+
+**postgrejs** is a PostgreSQL driver for Node.js that implements the wire protocol itself, in strictly typed
+TypeScript, without `libpq` or native bindings. It ships as ESM (Node 22.12+
 can also `require()` it from CommonJS code), exposes a fully promise-based API, and covers everything from a
 single connection to pooling, cursors, COPY streams, logical replication and two-phase commit in one package.
 
@@ -30,14 +30,15 @@ single connection to pooling, cursors, COPY streams, logical replication and two
 - **Cancellation** — every call accepts an `AbortSignal`, including per-query timeouts via `AbortSignal.timeout()`.
 - **Object or array row modes** to suit different data processing needs.
 - **TC39 Explicit Resource Management** — `using`/`await using` for automatic connection and statement cleanup.
+- **Observability** — tracing channels on `diagnostics_channel` for every operation, and OpenTelemetry spans and metrics through `postgrejs-otel`.
 
 ## Why no native bindings
 
 postgrejs implements the PostgreSQL wire protocol entirely in TypeScript, so there's no `libpq`, no
-`node-gyp`, and no native build step to install or ship. It's also not a tradeoff made for convenience:
-libpq-native drivers that swap in native bindings for speed can lose features in the process — cursors,
+`node-gyp`, and no native build step to install or ship. This is about features as well as convenience:
+libpq-native drivers that swap in native bindings for speed can lose features in the process. Cursors,
 row streaming, and COPY support are known to become incompatible once the pure-JS protocol layer is
-replaced. postgrejs never has to make that choice.
+replaced. postgrejs has no native layer to swap in, so it never has to make that choice.
 
 ## Installation
 

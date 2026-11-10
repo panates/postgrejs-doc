@@ -64,7 +64,7 @@ setting above zero on the server:
 max_prepared_transactions = 100
 ```
 
-This is a common gotcha when adopting 2PC — check `show max_prepared_transactions`
+This is a common gotcha when adopting 2PC: check `show max_prepared_transactions`
 on the target server before relying on it in production.
 
 A prepared transaction left uncommitted also holds locks and prevents
@@ -75,7 +75,7 @@ autovacuum from cleaning up until it is finished, so an orphaned
 expected.
 
 <small>
-This full prepare/commit/rollback API is a feature `pg` does not expose at all, and `postgres.js` only partially supports — it has a `sql.prepare(name)` helper for the prepare half, but no equivalent for `COMMIT PREPARED`/`ROLLBACK PREPARED`.
+`pg` does not expose this prepare/commit/rollback API at all, and `postgres.js` supports it only partially: it has a `sql.prepare(name)` helper for the prepare half, but no equivalent for `COMMIT PREPARED`/`ROLLBACK PREPARED`.
 </small>
 
 See [Transactions](./transactions-and-savepoints.md) for ordinary transaction and savepoint

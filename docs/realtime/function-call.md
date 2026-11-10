@@ -7,16 +7,16 @@ slug: /guides/function-call
 
 PostgreSQL's wire protocol has always had a second, older way to invoke a function: the Function
 Call sub-protocol (message codes `'F'`/`'V'`), which calls a function by OID directly instead of
-going through SQL at all. It predates `SELECT func(...)` over the Simple/Extended Query protocols
-— which is what every current client, including postgrejs's own `query()`/`execute()`, uses
-exclusively — and is kept here only for wire-protocol completeness, not because it's a better way
-to call a function today.
+going through SQL at all. It predates `SELECT func(...)` over the Simple/Extended Query protocols,
+which every current client uses exclusively, postgrejs's own `query()`/`execute()` included. It is
+kept here only for wire-protocol completeness, not because it's a better way to call a function
+today.
 
 :::note
-If you're not sure whether you need this: you don't. Use `connection.query('select func($1)', { params: [...] })`
-instead — see [Extended Query](../querying/extended-query.md). `callFunction()` exists for the rare case
+If you're not sure whether you need this, you don't. Use `connection.query('select func($1)', { params: [...] })`
+instead (see [Extended Query](../querying/extended-query.md)). `callFunction()` exists for the rare case
 where you're working at the wire-protocol level directly and specifically need to bypass SQL
-parsing (and, with it, anything SQL resolves for you — collation-dependent functions like `upper()`
+parsing (and, with it, anything SQL resolves for you: collation-dependent functions like `upper()`
 don't work through this protocol, since a raw argument has no expression context to resolve a
 collation from).
 :::
@@ -26,7 +26,7 @@ collation from).
 Unlike `query()`/`execute()`, which encode/decode values through postgrejs's own `DataType`
 system automatically, `callFunction()` is a low-level, bytes-in-bytes-out API: both the arguments
 and the result are plain `Buffer`s (or `null` for SQL `NULL`) in whatever wire format you asked
-for — there is no automatic conversion to/from JS values. You build and read those bytes yourself.
+for. There is no automatic conversion to/from JS values. You build and read those bytes yourself.
 
 ## Text-format example
 
@@ -88,7 +88,7 @@ result.result; // null
 
 ## Finding a function's OID
 
-`callFunction()` takes an OID, not a name — look it up with a normal query first if you don't
+`callFunction()` takes an OID, not a name. Look it up with a normal query first if you don't
 already have it (this is the `findOid` helper used above):
 
 ```ts

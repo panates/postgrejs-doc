@@ -14,12 +14,12 @@ import IntegrationLogo from '@site/src/components/IntegrationLogo';
 dialect for `postgrejs`. Put it where Kysely's own `PostgresDialect` goes and everything above it
 stays the same — your schema types, your queries, your migrations.
 
-It's faster where it counts, and allocates far less doing it. A 4MB `bytea` comes back in 15.6 ms
-against 34.2 ms, on 4.1 MB a call against 51.7 MB — `pg` reads that column as hex text, twice the
-size, off the JS heap where a heap figure alone can't see it. A 100k-element `int4[]` runs 3.3x, on
-2.2 MB against 22.7 MB. Ordinary queries gain less and gain it repeatably: a point read is the
-faster of the two in 92 of 101 alternated pairs. All of it measured through Kysely against Kysely's
-own `PostgresDialect` over `pg`, on the same server. And the client underneath can do things Kysely
+On large values it is faster and allocates much less. A 4MB `bytea` comes back in 15.6 ms against
+34.2 ms, on 4.1 MB a call against 51.7 MB; `pg` reads that column as hex text, twice the size, off
+the JS heap where a heap figure alone can't see it. A 100k-element `int4[]` runs 3.3x faster, on
+2.2 MB against 22.7 MB. Ordinary queries gain less, but repeatably: a point read is the faster of
+the two in 92 of 101 alternated pairs. All of it was measured through Kysely against Kysely's own
+`PostgresDialect` over `pg`, on the same server. The client underneath can also do things Kysely
 has no way to ask for.
 
 ## Installation
@@ -182,17 +182,18 @@ new PostgrejsDialect({
 ## Why
 
 It's a drop-in swap for Kysely's own `PostgresDialect`: the same `new Kysely({ dialect })` call,
-the same schema types, the same queries, the same migrations. What that buys:
+the same schema types, the same queries, the same migrations. The differences:
 
-- **Faster where the payload is large** — 2.2x on a 4MB `bytea` and 3.3x on a 100k-element
+- It is faster where the payload is large: 2.2x on a 4MB `bytea` and 3.3x on a 100k-element
   `int4[]`, on a fraction of the memory, because the values arrive in PostgreSQL's binary format
-  rather than as text to be parsed.
-- **Slightly faster on ordinary round trips**, repeatably — statements are prepared and reused
-  without anyone asking for it.
-- **A client that can do what Kysely has no way to ask for** — cursors, `COPY`, `LISTEN`/`NOTIFY`,
-  large objects, logical replication and pipelining, on the same pool your queries use.
-- **Checked against Kysely's own dialect suite** — every test, no skips, with Kysely's `pg` dialect
-  run over the same checkout as the control.
+  and are not parsed from text.
+- It is slightly faster on ordinary round trips, repeatably, because statements are prepared and
+  reused without anyone asking for it.
+- The client underneath can do what Kysely has no way to ask for: cursors, `COPY`,
+  `LISTEN`/`NOTIFY`, large objects, logical replication and pipelining, on the same pool your
+  queries use.
+- It is checked against Kysely's own dialect suite: every test, no skips, with Kysely's `pg`
+  dialect run over the same checkout as the control.
 
 | Scenario | node-postgres | `kysely-postgrejs` | Speedup / memory |
 |:---|:---|:---|:---|
@@ -215,10 +216,10 @@ the same schema types, the same queries, the same migrations. What that buys:
 `kysely` 0.29.6, `postgrejs` 3.12.1, `pg` 8.23.0, PostgreSQL on loopback, Node 24.15.0. Medians;
 the second figure in each cell is what one call allocates.
 
-**The gain follows the payload, not the query.** An ordinary read or write gains a little and gains
-it consistently; a column that carries bulk — an array, a `bytea`, anything large in a single
-row — gains twice over, in time and in memory. A schema of text, integers and timestamps sees the
-top of that table, not the bottom.
+The size of the gain depends on the payload, not on the query. An ordinary read or write gains a
+little, consistently; a column that carries bulk (an array, a `bytea`, anything large in a single
+row) gains in both time and memory. A schema of text, integers and timestamps will see figures like
+the top rows of that table, not the bottom ones.
 
 ## How the numbers were measured
 
@@ -248,7 +249,7 @@ drift. What doesn't drift is *which* of the two won each pair, so that's counted
 | Twenty inserts in a transaction | 61 | 58 | < 1 in 10¹³ |
 
 That's a [sign test](https://en.wikipedia.org/wiki/Sign_test) — only which driver won counts, and
-by how much is thrown away, which is exactly what makes it survive a noisy machine. Two drivers of
+by how much is thrown away, which is why it holds up on a noisy machine. Two drivers of
 equal speed would split the pairs evenly, so the last column is the probability of seeing a split
 that lopsided from a fair coin. It says which differences are real; it says nothing about their
 size, which is what the ratio column is for. A split a coin would produce is printed as level
@@ -262,8 +263,8 @@ literal as one string before it can parse it.
 `postgrejs` names and caches a statement per connection — 64 by default, least-recently-used
 closed — so each distinct SQL string is parsed and planned once rather than on every call. `pg`
 prepares only a query it was given a name for, and Kysely doesn't give it one, so the same
-statement is parsed again on every call there. That's what the point read's 92 pairs of 101 is made
-of.
+statement is parsed again on every call there. That accounts for the point read winning 92 pairs of
+101.
 
 The query builder itself costs 2.5 KB a call over a `sql` tag here and 1.9 KB on `pg`, and nothing
 that separates from drift on the clock — Kysely's own compiler runs on both sides, so it's the same
@@ -306,9 +307,8 @@ usable in every context PostgreSQL can infer a type from.
 ## What changes when you switch
 
 Everything above the driver is Kysely's own code, so the SQL, the types and the query builder are
-unchanged. What differs is what the client underneath makes of a value on its way back — and the
-package runs every row of the table below through both dialects in a test, so it's checked rather
-than asserted.
+unchanged. What differs is what the client underneath makes of a value on its way back. The package
+runs every row of the table below through both dialects in a test.
 
 ### Values
 
@@ -324,12 +324,12 @@ than asserted.
 | `point`, `circle` | plain objects | `Point`, `Circle` — same fields |
 | `box`, `line`, `lseg`, `path`, `polygon` | the text literal | their own classes |
 
-Everywhere else the two agree, which is the stronger half of the table: `text`, `boolean`,
+Everywhere else the two agree: `text`, `boolean`,
 `float8`, `date`, `timestamptz`, `json`, `jsonb`, `uuid`, `bytea`, arrays, `inet` and `bit` all
 arrive identically.
 
-`int8` is the one worth deciding about rather than discovering, since `count(*)` is in everyone's
-code: `fetchAsString: [DataTypeOIDs.int8]` gives you `pg`'s strings back, and the test asserts the
+`int8` is the one to decide on up front, since nearly every codebase uses `count(*)`:
+`fetchAsString: [DataTypeOIDs.int8]` gives you `pg`'s strings back, and the test asserts the
 two then match exactly.
 
 ### Parameters take their type from where they appear

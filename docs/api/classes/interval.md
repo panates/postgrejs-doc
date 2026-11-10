@@ -6,7 +6,7 @@ sidebar_position: 14
 
 PostgreSQL's `interval`, as the three independent quantities it actually is: a number of months, a
 number of days, and a time. They're kept apart rather than reduced to one total because they're not
-convertible — a month is 28 to 31 days and a day is 23 to 25 hours across a DST boundary, so only
+convertible: a month is 28 to 31 days and a day is 23 to 25 hours across a DST boundary, so only
 the server, holding a calendar and a time zone, can add one to a timestamp.
 
 ```ts
@@ -21,10 +21,10 @@ JSON.stringify(iv);     // '{"days":1,"hours":2}'
 The field names match `postgres-interval` (`pg`'s interval package), so code ported from it reads
 the same values from the same places, including the sparseness: only a field the value actually has
 is set, so `interval '1 day'` decodes to `{ days: 1 }` and `iv.hours` on it is `undefined`, not `0`.
-Reading a field that might be absent needs to say what that means — `iv.hours ?? 0` — which
-TypeScript's optional field types point at directly, and which `iv.hours + 1` gets silently wrong
-(`NaN`) without. Everything this class derives — `totalMonths`, `totalMicroseconds`,
-`toString()`/`toPostgres()`, and `toISOString()` — already reads an absent field as the zero it
+Reading a field that might be absent needs to say what that means (`iv.hours ?? 0`).
+TypeScript's optional field types point at this directly; without it, `iv.hours + 1` is silently
+wrong (`NaN`). Everything this class derives (`totalMonths`, `totalMicroseconds`,
+`toString()`/`toPostgres()`, and `toISOString()`) already reads an absent field as the zero it
 stands for, so those are unaffected.
 
 ## Constructor

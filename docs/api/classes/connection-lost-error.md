@@ -28,14 +28,14 @@ pool.on('error', err => {
 
 | Key | Type | Readonly | Description |
 |:---|:---|:---|:---|
-| message | `string` | false | Always `"Connection terminated unexpectedly"` — deliberately generic, matching what other drivers report for the same event, so code branching on the message keeps working. What happened to *this* connection is in the other fields |
-| code | `string` | true | Always `'08006'` (`connection_failure`), a SQLSTATE-shaped value synthesized here — the server itself never sends it, since it cannot report its own connection going away. Lets a listener branch without `instanceof`, which fails across duplicated copies of the package |
+| message | `string` | false | Always `"Connection terminated unexpectedly"`. The text is deliberately generic and matches what other drivers report for the same event, so code branching on the message keeps working. What happened to *this* connection is in the other fields |
+| code | `string` | true | Always `'08006'` (`connection_failure`), a SQLSTATE-shaped value synthesized here. The server itself never sends it, since it cannot report its own connection going away. Lets a listener branch without `instanceof`, which fails across duplicated copies of the package |
 | processID | `number` | false | The backend's process id, as it was before the connection reset |
 | cause | `unknown` | false | The underlying socket error, when there was one — a clean FIN leaves none |
 
 ## Telling it apart from an ordinary disconnect
 
-A `close()` *you* called still rejects any in-flight call with a plain `Error('Connection closed')`
-— nothing was lost there, the caller simply raced a shutdown it requested. `ConnectionLostError`
-only shows up for a close nobody asked for, which is what makes `code === '08006'` a reliable signal
-that something went wrong rather than that the application shut the connection down on purpose.
+A `close()` *you* called still rejects any in-flight call with a plain `Error('Connection closed')`.
+Nothing was lost there; the caller raced a shutdown it requested. `ConnectionLostError` only shows
+up for a close nobody asked for, so `code === '08006'` reliably means something went wrong, not that
+the application shut the connection down on purpose.

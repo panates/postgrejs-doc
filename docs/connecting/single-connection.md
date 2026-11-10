@@ -6,7 +6,7 @@ slug: /guides/single-connection
 # Single Connection
 
 A [`Connection`](../api/classes/connection.md) represents one physical socket to a PostgreSQL server. It is the
-lowest-level object in postgrejs — a [`Pool`](../api/classes/pool.md) simply hands out `Connection` instances that
+lowest-level object in postgrejs; a [`Pool`](../api/classes/pool.md) hands out `Connection` instances that
 share the same underlying wiring.
 
 Requires `node >= 22.x`.
@@ -122,7 +122,7 @@ See [API: Connection](../api/classes/connection.md) for the complete event and m
 await connection.close(terminateWait?: number): Promise<void>
 ```
 
-By default — `close()` called with no argument — the connection closes immediately: it rolls back any open
+By default, when `close()` is called with no argument, the connection closes immediately: it rolls back any open
 transaction, sends the socket a `Terminate` message, and closes it, without waiting for queries that might still be
 in flight.
 

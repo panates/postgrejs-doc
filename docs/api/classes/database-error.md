@@ -4,7 +4,7 @@ sidebar_position: 9
 
 # DatabaseError
 
-Extends the built-in `Error`. Constructed internally from the server's `ErrorResponse` message and thrown/rejected by `query()`, `execute()` and other statement-executing methods — you do not construct it yourself. Every field mirrors one of the fields PostgreSQL includes in its `ErrorResponse`/`NoticeResponse` protocol messages (see the [PostgreSQL error field docs](https://www.postgresql.org/docs/current/protocol-error-fields.html)); all are optional because the server only sends the ones it has.
+Extends the built-in `Error`. Constructed internally from the server's `ErrorResponse` message and thrown/rejected by `query()`, `execute()` and other statement-executing methods; you do not construct it yourself. Every field mirrors one of the fields PostgreSQL includes in its `ErrorResponse`/`NoticeResponse` protocol messages (see the [PostgreSQL error field docs](https://www.postgresql.org/docs/current/protocol-error-fields.html)); all are optional because the server only sends the ones it has.
 
 ```ts
 import { Connection, DatabaseError } from 'postgrejs';
@@ -24,8 +24,8 @@ try {
 
 | Key              | Type     | Readonly | Description                                                                                       |
 |-------------------|----------|----------|-----------------------------------------------------------------------------------------------------|
-| message           | `string` | false    | Human-readable error message (inherited from `Error`) — includes the appended `at line N column M` excerpt when `position` let postgrejs compute one; see below |
-| serverMessage     | `string` | false    | *(postgrejs-added)* What PostgreSQL actually said, with none of that appended — the raw text worth pattern-matching against, since PostgreSQL puts the interesting part (a column name, a constraint name) only in the message text itself, not in a separate field |
+| message           | `string` | false    | Human-readable error message (inherited from `Error`). Includes the appended `at line N column M` excerpt when `position` let postgrejs compute one; see below |
+| serverMessage     | `string` | false    | *(postgrejs-added)* What PostgreSQL actually said, with none of that appended. This is the raw text worth pattern-matching against, since PostgreSQL puts the interesting part (a column name, a constraint name) only in the message text itself, not in a separate field |
 | severity          | `string` | false    | `ERROR`, `FATAL`, `PANIC`, or (for a notice) `WARNING`, `NOTICE`, `DEBUG`, `INFO`, `LOG`                |
 | code              | `string` | false    | SQLSTATE error code                                                                                    |
 | detail            | `string` | false    | Secondary, more detailed error message                                                                |
@@ -42,9 +42,9 @@ try {
 | lineNr            | `number` | false    | Line number within the SQL script that caused the error (computed client-side from `position`)          |
 | colNr             | `number` | false    | Column number within that line (computed client-side from `position`)                                  |
 | line              | `string` | false    | The text of the offending line itself (computed client-side from `position`)                            |
-| failedIndex        | `number` | false    | Which parameter set [`PreparedStatement.executeBatch()`](./prepared-statement.md#executebatch) was on when the server rejected the batch — only set by that path. Sets after this index never ran |
-| batchResults      | `BatchCommandResult[]` | false | The sets that had already completed when the batch failed, in submission order — only set by `executeBatch()`. They did run, but the batch shares one implicit transaction, so unless an explicit transaction was already open they are rolled back with it |
+| failedIndex        | `number` | false    | Which parameter set [`PreparedStatement.executeBatch()`](./prepared-statement.md#executebatch) was on when the server rejected the batch. Only set by that path. Sets after this index never ran |
+| batchResults      | `BatchCommandResult[]` | false | The sets that had already completed when the batch failed, in submission order. Only set by `executeBatch()`. They did run, but the batch shares one implicit transaction, so unless an explicit transaction was already open they are rolled back with it |
 
 :::note
-`lineNr`, `colNr` and `line` are not sent by the server — they are computed by `Connection` from `position` after the error is received, and only when `position` is present. They are what make the appended `at line N column M` context in a thrown error's `message` possible.
+`lineNr`, `colNr` and `line` are not sent by the server; they are computed by `Connection` from `position` after the error is received, and only when `position` is present. They are what make the appended `at line N column M` context in a thrown error's `message` possible.
 :::

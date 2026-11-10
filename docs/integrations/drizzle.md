@@ -15,12 +15,12 @@ import IntegrationLogo from '@site/src/components/IntegrationLogo';
 `drizzle-orm/node-postgres` goes and everything above it stays the same — your schema, your
 queries, your migrations.
 
-It's faster where it counts, and holds far less memory doing it. A 4MB `bytea` comes back in
-13.6&nbsp;ms against 30.4&nbsp;ms, at 4.5&nbsp;MB against 51.7&nbsp;MB — `pg` holds that column as
+On large values it is faster and holds much less memory. A 4MB `bytea` comes back in
+13.6&nbsp;ms against 30.4&nbsp;ms, at 4.5&nbsp;MB against 51.7&nbsp;MB; `pg` holds that column as
 hex text, twice the size, off the JS heap where a heap figure alone can't see it. A 100k-element
-`int4[]` runs 3.9x, at 2.3&nbsp;MB against 33.6&nbsp;MB. Ordinary queries gain less and gain it
-repeatably: a point read is the faster of the two in 100 of 101 alternated pairs. And the client
-underneath can do things Drizzle has no way to ask for.
+`int4[]` runs 3.9x faster, at 2.3&nbsp;MB against 33.6&nbsp;MB. Ordinary queries gain less, but
+repeatably: a point read is the faster of the two in 100 of 101 alternated pairs. The client
+underneath can also do things Drizzle has no way to ask for.
 
 ## Installation
 
@@ -125,16 +125,17 @@ and has no seam a third-party driver can enter. So they need their own `dbCreden
 ## Why
 
 It's a drop-in swap for `drizzle-orm/node-postgres`: the same `drizzle(client)` call, the same
-schema, the same queries, the same migrations. What that buys:
+schema, the same queries, the same migrations. The differences:
 
-- **Faster where the payload is large** — 2.2x on a 4MB `bytea`, and 3.9x on a 100k-element
+- It is faster where the payload is large: 2.2x on a 4MB `bytea`, and 3.9x on a 100k-element
   `int4[]` whose values use the whole type, on a fraction of the memory, because values arrive in
-  PostgreSQL's binary format rather than as text to be parsed.
-- **Slightly faster on ordinary round trips**, repeatably — statements are prepared and reused
-  without anyone asking for it.
-- **A client that can do what Drizzle has no way to ask for** — cursors, `COPY`, `LISTEN`/`NOTIFY`,
-  large objects, logical replication and pipelining, on the same pool your queries use.
-- **Checked against Drizzle's own integration suite** — 183 of its tests pass, with
+  PostgreSQL's binary format and are not parsed from text.
+- It is slightly faster on ordinary round trips, repeatably, because statements are prepared and
+  reused without anyone asking for it.
+- The client underneath can do what Drizzle has no way to ask for: cursors, `COPY`,
+  `LISTEN`/`NOTIFY`, large objects, logical replication and pipelining, on the same pool your
+  queries use.
+- It is checked against Drizzle's own integration suite: 183 of its tests pass, with
   `drizzle-orm/node-postgres` run over the same server in the same invocation as the control.
 
 | Scenario | node-postgres | `drizzle-postgrejs` | Speedup / memory |
@@ -157,10 +158,10 @@ schema, the same queries, the same migrations. What that buys:
 `drizzle-orm` 0.45.3, `postgrejs` 3.12.1, PostgreSQL on loopback, Node 24.15.0. Medians — how that
 was measured is below.
 
-**The gain follows the payload, not the query.** An ordinary read or write gains a little and gains
-it consistently; a column that carries bulk — an array, a `bytea`, anything large in a raw
-`db.execute()` — gains twice over, in time and in memory. A schema of text, integers and
-timestamps sees the top of this table, not the bottom.
+The size of the gain depends on the payload, not on the query. An ordinary read or write gains a
+little, consistently; a column that carries bulk (an array, a `bytea`, anything large in a raw
+`db.execute()`) gains in both time and memory. A schema of text, integers and timestamps will see
+figures like the top rows of this table, not the bottom ones.
 
 ## How the numbers were measured
 
@@ -190,15 +191,15 @@ apart). What doesn't drift is *which* driver won each pair, so that's counted se
 | Twenty inserts in a transaction | 61 | 61 | < 1 in 10¹⁸ |
 
 That's a [sign test](https://en.wikipedia.org/wiki/Sign_test) — only which driver won counts, and
-by how much is thrown away, which is exactly what makes it survive a noisy machine. Two drivers of
+by how much is thrown away, which is why it holds up on a noisy machine. Two drivers of
 equal speed would split the pairs evenly, so the last column is the probability of seeing a split
 that lopsided from a fair coin. Two rows say "not distinguishable" and are reported that way rather
 than rounded into a win.
 
 Result columns arrive in PostgreSQL's binary format and are decoded per type, where `pg` asks for
-text and parses it — on bulk that's the whole difference: a 100k-element `int4[]` costs 5.6 ms and
+text and parses it. On bulk that's the whole difference: a 100k-element `int4[]` costs 5.6 ms and
 2.3 MB here against 22.1 ms and 33.6 MB, because the text path has to materialize the array literal
-as one string before it can parse it. It's cheaper on the wire too — a `bytea` in text is
+as one string before it can parse it. It's also cheaper on the wire: a `bytea` in text is
 `\x`-prefixed hex, two characters per byte, so the 4MB column costs 8MB of network under `pg` and
 4MB here.
 
@@ -206,8 +207,8 @@ as one string before it can parse it. It's cheaper on the wire too — a `bytea`
 closed — so each distinct SQL string is parsed and planned once rather than on every call. Counted
 from the backend: three queries through this driver leave one prepared statement behind, and the
 same three through `drizzle-orm/node-postgres` leave none, because `pg` prepares only a query it
-was given a name for and Drizzle doesn't give it one — that's what the point read's 100 of 101
-pairs is. Drizzle's own `.prepare(name)` still works as it always did; it's no longer the only way
+was given a name for and Drizzle doesn't give it one. That accounts for the point read winning 100
+of 101 pairs. Drizzle's own `.prepare(name)` still works as it always did; it's no longer the only way
 to get a statement prepared.
 
 Where Drizzle's column mappers want PostgreSQL's own text — `numeric`, the date and time family,
@@ -217,8 +218,8 @@ what `pg` received, and nothing on this side has to track the session's `DateSty
 `IntervalStyle` or `TimeZone` to produce it.
 
 `postgrejs` can put several statements on one connection at a time. This driver doesn't ask it
-to — every query gets a connection to itself, exactly as under `pg` — and the concurrency row above
-is level because of that, not despite it. The headroom is real and unclaimed.
+to: every query gets a connection to itself, exactly as under `pg`, and that is why the concurrency
+row above is level. This driver leaves that capacity unused.
 
 Run it yourself with `npm run bench` in the `drizzle-postgrejs` repo; its
 [`doc/BENCHMARKS.md`](https://github.com/panates/postgrejs-drizzle/blob/main/doc/BENCHMARKS.md)
@@ -236,8 +237,8 @@ node-postgres (control)  183 / 183
 drizzle-postgrejs        183 / 183
 ```
 
-Same tests, and both pass every one of them — not a single test this driver loses that
-`node-postgres` wins. There's no expected-failure list either: the control run measures the
+Both run the same tests and both pass every one of them, so there is no test this driver loses
+that `node-postgres` wins. There's no expected-failure list either: the control run measures the
 baseline on the machine it's run on, so that's the only thing the comparison can fail on. It has to
 be a control rather than a fixed number, because the suite asserts row order in three places
 without writing an `ORDER BY`, so its score moves with the PostgreSQL version — 183 of 183 on the
@@ -245,8 +246,8 @@ without writing an `ORDER BY`, so its score moves with the PostgreSQL version �
 other end of the peer range, the suite is 179 tests and both score 179. A weekly CI job runs the
 matrix of both Drizzle versions against PostgreSQL 14 and 18.
 
-On top of that, 212 tests of this package's own — including a differential suite that runs every
-case through `drizzle-orm/node-postgres` as well and compares the two.
+The package also has 212 tests of its own, including a differential suite that runs every case
+through `drizzle-orm/node-postgres` as well and compares the two.
 
 ## What changes when you switch
 
@@ -298,7 +299,7 @@ PostgreSQL's own C source line, `postgrejs`'s is the line of SQL), `file`/`routi
 
 ### Several statements in one `db.execute()`
 
-It works here too, and it's worth knowing how. `pg` accepts several statements in one call because
+It works here too, though not the way it does under `pg`. `pg` accepts several statements in one call because
 a parameterless query goes over PostgreSQL's simple protocol — a guess from whether the call
 happens to carry parameters. `postgrejs`'s `query()` is always the extended protocol and its
 `execute()` is the simple-protocol counterpart, so the driver has to choose: it asks
