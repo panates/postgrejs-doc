@@ -6,7 +6,7 @@ hide_title: true
 
 import IntegrationLogo from '@site/src/components/IntegrationLogo';
 
-<IntegrationLogo alt="Kysely" icon="/img/kysely-logo.svg" name="Kysely" />
+<IntegrationLogo alt="Kysely" light="/img/kysely-full-light.svg" dark="/img/kysely-full-dark.svg" />
 
 # Kysely
 
