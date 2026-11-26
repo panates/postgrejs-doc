@@ -176,12 +176,7 @@ const INTEGRATIONS: Integration[] = [
     name: 'Kysely',
     href: '/docs/integrations/kysely',
     description: 'A type-safe SQL query builder — run it on postgrejs instead of pg with a drop-in dialect.',
-    logo: (
-      <span className={styles.integrationLockup}>
-        <img src="/img/kysely-logo.svg" alt="" className={styles.integrationLogo} />
-        <span className={styles.integrationLockupName}>Kysely</span>
-      </span>
-    ),
+    logo: fullLogo('Kysely', '/img/kysely-full-light.svg', '/img/kysely-full-dark.svg'),
   },
   {
     name: 'Drizzle ORM',
