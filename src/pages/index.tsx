@@ -167,6 +167,12 @@ const INTEGRATIONS: Integration[] = [
     logo: fullLogo('Joist', '/img/joist-full-light.svg', '/img/joist-full-dark.svg'),
   },
   {
+    name: 'Knex',
+    href: '/docs/integrations/knex',
+    description: 'A Knex client — run the query builder, your migrations and your seeds on postgrejs instead of pg.',
+    logo: fullLogo('Knex.js', '/img/knex-full-light.svg', '/img/knex-full-dark.svg'),
+  },
+  {
     name: 'Kysely',
     href: '/docs/integrations/kysely',
     description: 'A type-safe SQL query builder — run it on postgrejs instead of pg with a drop-in dialect.',
