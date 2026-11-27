@@ -1,25 +1,51 @@
 # Dependencies
-/node_modules
+node_modules
+
+# Build output
+build/
 *.tsbuildinfo
-.claude
+
+# Environment variables: only an example file is committed
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# Claude Code: .claude/settings.json is shared and committed, these are local
+# (.claude/local/ holds the handoff note between sessions)
+.claude/settings.local.json
+.claude/worktrees/
+.claude/local/
 graphify-out
-/test-*
 
-# Production
-/build
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# Generated files
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+# Docusaurus
 .docusaurus
 .cache-loader
-.idea
 
-# Misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Local scratch
+/test-*

@@ -47,3 +47,13 @@ Before every push, in this order, stopping at the first failure:
    (`pnpm start`, or `pnpm serve` after the build) is the test.
 6. Push — still only after the user has asked for it, or after asking, as described above. If steps 2–3
    changed `package.json` or `pnpm-lock.yaml`, commit them first, separately from the content change.
+
+## Handoff notes and other session files
+
+A handoff note for the next session goes to `.claude/local/handoff.md`, nowhere else, and is never
+committed. `.claude/local/` is git-ignored and holds the files of a single session; a new handoff
+replaces the old note rather than adding to it. A session that starts from one reads it first, then
+checks what it says against the code and `git log` instead of trusting it.
+
+`.claude/settings.json` is the opposite: it is shared and committed. Anything machine-specific, such
+as a hook naming an absolute path, belongs in `.claude/settings.local.json`, which is ignored.
